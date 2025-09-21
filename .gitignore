@@ -27,3 +27,4 @@ dist-ssr
 # Backend
 backend/node_modules
 .env
+__tests__
