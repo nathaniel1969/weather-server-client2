@@ -1,13 +1,18 @@
 import React from "react";
-import { useState } from "react";
 
-function ToggleSwitch({ onToggle }) {
-  const [isMetric, setIsMetric] = useState(false);
-
+/**
+ * A toggle switch component to switch between metric and imperial units.
+ * @param {object} props - The props for the component.
+ * @param {boolean} props.isMetric - Boolean to determine if the units are metric.
+ * @param {function} props.onToggle - Function to handle the unit toggle.
+ * @returns {JSX.Element} - The rendered component.
+ */
+function ToggleSwitch({ isMetric, onToggle }) {
+  /**
+   * Handles the toggle switch change.
+   */
   const handleToggle = () => {
-    const newIsMetric = !isMetric;
-    setIsMetric(newIsMetric);
-    onToggle(newIsMetric);
+    onToggle(!isMetric);
   };
 
   return (

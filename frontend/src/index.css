@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  /* Removed .card class as per Tailwind v4 recommendations */
+}
+.card {
+  @apply bg-white p-6 rounded-lg shadow-md border border-gray-200;
+}

@@ -3,18 +3,26 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import useDebounce from "../hooks/useDebounce";
 
+/**
+ * A search bar component that provides location suggestions.
+ * @param {object} props - The props for the component.
+ * @param {function} props.fetchWeather - Function to fetch weather data.
+ * @returns {JSX.Element} - The rendered component.
+ */
 function Searchbar({ fetchWeather }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   useEffect(() => {
+    /**
+     * Fetches location suggestions based on the debounced search term.
+     */
     const fetchSuggestions = async () => {
       if (debouncedSearchTerm.length > 2) {
         try {
-          // Use backend proxy endpoint for geocoding suggestions
           const response = await axios.get(
-            `/api/geocode?query=${debouncedSearchTerm}`
+            `http://localhost:3001/api/geocode?query=${debouncedSearchTerm}`
           );
           setSuggestions(response.data.results || []);
         } catch (error) {
@@ -28,12 +36,20 @@ function Searchbar({ fetchWeather }) {
     fetchSuggestions();
   }, [debouncedSearchTerm]);
 
+  /**
+   * Handles the click on a suggestion.
+   * @param {object} suggestion - The suggestion object.
+   */
   const handleSuggestionClick = (suggestion) => {
     setSearchTerm(suggestion.formatted);
     setSuggestions([]);
     fetchWeather(suggestion);
   };
 
+  /**
+   * Handles the form submission.
+   * @param {object} e - The event object.
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (searchTerm) {

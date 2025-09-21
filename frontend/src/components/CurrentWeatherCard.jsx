@@ -1,22 +1,21 @@
 import React from "react";
-import { useState } from "react";
-import Searchbar from "./Searchbar";
-import ToggleSwitch from "./ToggleSwitch";
+import {
+  convertTemperature,
+  getWeatherDescription,
+  convertSpeed,
+  convertPrecipitation,
+  convertPressure,
+} from "../utils/helpers";
 
-function CurrentWeatherCard({ fetchWeather, weatherData, locationName }) {
-  const [isMetric, setIsMetric] = useState(false);
-
-  const handleUnitToggle = (isMetric) => {
-    setIsMetric(isMetric);
-  };
-
-  const convertTemperature = (temp) => {
-    if (isMetric) {
-      return temp;
-    }
-    return (temp * 9) / 5 + 32;
-  };
-
+/**
+ * Displays the current weather information.
+ * @param {object} props - The props for the component.
+ * @param {object} props.weatherData - The weather data from the API.
+ * @param {string} props.locationName - The name of the location.
+ * @param {boolean} props.isMetric - Boolean to determine if the units are metric.
+ * @returns {JSX.Element} - The rendered component.
+ */
+function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
   const getFormattedDate = () => {
     if (!weatherData) return "";
     const date = new Date();
@@ -34,29 +33,99 @@ function CurrentWeatherCard({ fetchWeather, weatherData, locationName }) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex-grow mr-4">
-          <Searchbar fetchWeather={fetchWeather} />
-        </div>
-        <ToggleSwitch onToggle={handleUnitToggle} />
-      </div>
+    <div className="card">
       {weatherData && (
-        <div className="flex flex-col items-center">
-          <h2 className="text-2xl font-bold mb-2">{locationName}</h2>
-          <p className="text-lg text-gray-600">{getFormattedDate()}</p>
-          <p className="text-lg text-gray-600">{getFormattedTime()}</p>
-          <div className="flex items-center mt-4">
-            <span className="text-5xl font-bold">
-              {Math.round(
-                convertTemperature(weatherData.current.temperature_2m)
-              )}
-            </span>
-            <span className="text-3xl mt-2">{isMetric ? "°C" : "°F"}</span>
+        <div>
+          <div className="text-center mb-4">
+            <h2 className="text-2xl font-bold mb-2">{locationName}</h2>
+            <p className="text-lg text-gray-600">{getFormattedDate()}</p>
+            <p className="text-lg text-gray-600">{getFormattedTime()}</p>
+            <div className="flex items-center justify-center mt-4">
+              <span className="text-5xl font-bold">
+                {Math.round(
+                  isMetric
+                    ? weatherData.current.temperature_2m
+                    : convertTemperature(weatherData.current.temperature_2m)
+                )}
+              </span>
+              <span className="text-3xl mt-2">{isMetric ? "°C" : "°F"}</span>
+            </div>
+            <p className="text-lg mt-2">
+              {getWeatherDescription(weatherData.current.weather_code)}
+            </p>
           </div>
-          <p className="text-lg mt-2">
-            Weather: {weatherData.current.weather_code}
-          </p>
+          <div className="grid grid-cols-2 gap-4 mt-6">
+            <div className="bg-gray-100 p-4 rounded-lg">
+              <p>
+                <strong>Apparent Temperature:</strong>{" "}
+                {Math.round(
+                  isMetric
+                    ? weatherData.current.apparent_temperature
+                    : convertTemperature(
+                        weatherData.current.apparent_temperature
+                      )
+                )}
+                {isMetric ? "°C" : "°F"}
+              </p>
+              <p>
+                <strong>Humidity:</strong>{" "}
+                {weatherData.current.relative_humidity_2m}%
+              </p>
+              <p>
+                <strong>Precipitation:</strong>{" "}
+                {isMetric
+                  ? weatherData.current.precipitation.toFixed(2) + " mm"
+                  : convertPrecipitation(
+                      weatherData.current.precipitation
+                    ).toFixed(2) + " in"}
+              </p>
+              <p>
+                <strong>Cloud Cover:</strong> {weatherData.current.cloud_cover}%
+              </p>
+              <p>
+                <strong>Pressure:</strong>{" "}
+                {isMetric
+                  ? weatherData.current.surface_pressure.toFixed(2) + " hPa"
+                  : convertPressure(weatherData.current.surface_pressure).toFixed(2) + " inHg"}
+              </p>
+            </div>
+            <div className="bg-gray-100 p-4 rounded-lg">
+              <p>
+                <strong>Wind Speed:</strong>{" "}
+                {isMetric
+                  ? weatherData.current.wind_speed_10m.toFixed(2) + " km/h"
+                  : convertSpeed(weatherData.current.wind_speed_10m).toFixed(2) + " mph"}
+              </p>
+              <p>
+                <strong>Wind Direction:</strong>{" "}
+                {weatherData.current.wind_direction_10m}°
+              </p>
+              <p>
+                <strong>Wind Gusts:</strong>{" "}
+                {isMetric
+                  ? weatherData.current.wind_gusts_10m.toFixed(2) + " km/h"
+                  : convertSpeed(weatherData.current.wind_gusts_10m).toFixed(2) + " mph"}
+              </p>
+              <p>
+                <strong>Rain:</strong>{" "}
+                {isMetric
+                  ? weatherData.current.rain.toFixed(2) + " mm"
+                  : convertPrecipitation(weatherData.current.rain).toFixed(2) + " in"}
+              </p>
+              <p>
+                <strong>Showers:</strong>{" "}
+                {isMetric
+                  ? weatherData.current.showers.toFixed(2) + " mm"
+                  : convertPrecipitation(weatherData.current.showers).toFixed(2) + " in"}
+              </p>
+              <p>
+                <strong>Snowfall:</strong>{" "}
+                {isMetric
+                  ? weatherData.current.snowfall.toFixed(2) + " mm"
+                  : convertPrecipitation(weatherData.current.snowfall).toFixed(2) + " in"}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

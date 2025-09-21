@@ -1,11 +1,11 @@
 /**
- * Express server for the Open-Weather App backend.
+ * @file Express server for the Open-Weather App backend.
  * @module server
  */
 
-import express from 'express';
-import axios from 'axios';
-import dotenv from 'dotenv';
+import express from "express";
+import axios from "axios";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -26,7 +26,7 @@ app.use((req, res, next) => {
 
 /**
  * Geocoding API endpoint for location suggestions.
- * @name /api/geocode
+ * @name GET /api/geocode
  * @function
  * @memberof module:server
  * @param {object} req - Express request object.
@@ -47,8 +47,6 @@ app.get("/api/geocode", async (req, res) => {
         params: {
           q: query,
           key: opencageApiKey,
-          limit: 10,
-          no_annotations: 1,
         },
       }
     );
@@ -59,20 +57,31 @@ app.get("/api/geocode", async (req, res) => {
     const results = geoData.results.map((item) => {
       const components = item.components || {};
       let timezoneName = null;
-      if (item.annotations && item.annotations.timezone && item.annotations.timezone.name) {
+      if (
+        item.annotations &&
+        item.annotations.timezone &&
+        item.annotations.timezone.name
+      ) {
         timezoneName = item.annotations.timezone.name;
       } else {
-        console.error('Timezone not found for item:', item);
+        console.error("Timezone not found for item:", item);
       }
       return {
         formatted: item.formatted,
-        city: components.city || components.town || components.village || components.hamlet,
+        city:
+          components.city ||
+          components.town ||
+          components.village ||
+          components.hamlet,
         state: components.state || components.province,
         county: components.county,
         country: components.country,
         timezone: timezoneName || "", // Ensure timezone is a string
         geometry: item.geometry,
-        flag: item.annotations && item.annotations.flag ? item.annotations.flag : null,
+        flag:
+          item.annotations && item.annotations.flag
+            ? item.annotations.flag
+            : null,
       };
     });
     res.json({ results });
@@ -84,7 +93,7 @@ app.get("/api/geocode", async (req, res) => {
 
 /**
  * Weather API endpoint.
- * @name /api/weather
+ * @name GET /api/weather
  * @function
  * @memberof module:server
  * @param {object} req - Express request object.
@@ -98,7 +107,9 @@ app.get("/api/weather", async (req, res) => {
   const { latitude, longitude, timezone } = req.query;
 
   if (!latitude || !longitude || !timezone) {
-    return res.status(400).json({ error: "Latitude, longitude, and timezone are required" });
+    return res
+      .status(400)
+      .json({ error: "Latitude, longitude, and timezone are required" });
   }
 
   try {
@@ -114,9 +125,9 @@ app.get("/api/weather", async (req, res) => {
             "temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,visibility,cloud_cover,surface_pressure,weather_code,snow_depth,snowfall,showers,rain,uv_index",
           current:
             "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,rain,showers,snowfall,pressure_msl",
-          wind_speed_unit: "mph",
-          temperature_unit: "fahrenheit",
-          precipitation_unit: "inch",
+          wind_speed_unit: "kmh",
+          temperature_unit: "celsius",
+          precipitation_unit: "mm",
           timezone,
         },
       }
@@ -129,7 +140,7 @@ app.get("/api/weather", async (req, res) => {
   }
 });
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== "test") {
   app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
   });
