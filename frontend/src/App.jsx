@@ -36,7 +36,7 @@ function App() {
         if (geoResponse.data.results && geoResponse.data.results.length > 0) {
           suggestion = geoResponse.data.results[0];
         } else {
-          console.error("No geocoding results found");
+          alert("No geocoding results found. Please check your search input.");
           return;
         }
       } else {
@@ -50,6 +50,7 @@ function App() {
       setLocationName(suggestion.formatted);
     } catch (error) {
       console.error("Error fetching weather data:", error);
+      alert("Error fetching weather data. Please try again later.");
     }
   };
 

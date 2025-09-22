@@ -12,12 +12,10 @@ import useDebounce from "../hooks/useDebounce";
 function Searchbar({ fetchWeather }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   useEffect(() => {
-    /**
-     * Fetches location suggestions based on the debounced search term.
-     */
     const fetchSuggestions = async () => {
       if (debouncedSearchTerm.length > 2) {
         try {
@@ -33,23 +31,18 @@ function Searchbar({ fetchWeather }) {
       }
     };
 
-    fetchSuggestions();
-  }, [debouncedSearchTerm]);
+    if (showSuggestions) {
+        fetchSuggestions();
+    }
+  }, [debouncedSearchTerm, showSuggestions]);
 
-  /**
-   * Handles the click on a suggestion.
-   * @param {object} suggestion - The suggestion object.
-   */
   const handleSuggestionClick = (suggestion) => {
     setSearchTerm(suggestion.formatted);
+    setShowSuggestions(false);
     setSuggestions([]);
     fetchWeather(suggestion);
   };
 
-  /**
-   * Handles the form submission.
-   * @param {object} e - The event object.
-   */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (searchTerm) {
@@ -58,24 +51,29 @@ function Searchbar({ fetchWeather }) {
     }
   };
 
+  const handleInputChange = (e) => {
+    setShowSuggestions(true);
+    setSearchTerm(e.target.value);
+  }
+
   return (
     <div className="relative">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="flex">
         <input
           type="text"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleInputChange}
           placeholder="Search for a location..."
-          className="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 rounded-l-md border-r-0 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           type="submit"
-          className="absolute right-0 top-0 mt-2 mr-2 px-4 py-1 bg-blue-500 text-white rounded-md"
+          className="px-4 py-2 bg-blue-500 text-white rounded-r-md"
         >
           Search
         </button>
       </form>
-      {suggestions.length > 0 && (
+      {showSuggestions && suggestions.length > 0 && (
         <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1">
           {suggestions.slice(0, 10).map((suggestion, idx) => {
             return (

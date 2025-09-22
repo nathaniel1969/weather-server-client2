@@ -1,7 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-.card {
-  @apply bg-white p-6 rounded-lg shadow-md border border-gray-200;
-}
