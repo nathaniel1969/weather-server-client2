@@ -13,6 +13,7 @@ function App() {
   const [weatherData, setWeatherData] = useState(null);
   const [locationName, setLocationName] = useState("");
   const [isMetric, setIsMetric] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   /**
    * Handles the toggle between metric and imperial units.
@@ -37,6 +38,7 @@ function App() {
           suggestion = geoResponse.data.results[0];
         } else {
           alert("No geocoding results found. Please check your search input.");
+          setSearchTerm("");
           return;
         }
       } else {
@@ -68,6 +70,8 @@ function App() {
           fetchWeather={fetchWeather}
           isMetric={isMetric}
           onToggle={handleUnitToggle}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
         />
 
         <div className="grid grid-cols-1 gap-8 mt-8">

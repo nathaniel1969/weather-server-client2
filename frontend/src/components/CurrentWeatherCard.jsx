@@ -27,7 +27,7 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
     const date = new Date();
     return date.toLocaleTimeString("en-US", {
       timeZone: weatherData.timezone,
-      hour: "2-digit",
+      hour: "numeric",
       minute: "2-digit",
     });
   };
@@ -53,6 +53,9 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
             <p className="text-lg mt-2">
               {getWeatherDescription(weatherData.current.weather_code)}
             </p>
+			<p className="text-lg mt-2">
+				<strong>Daylight:</strong> {weatherData.current.is_day ? "Day" : "Night"}
+			</p>
           </div>
           <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="bg-gray-100 p-4 rounded-lg">
@@ -83,11 +86,17 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
                 <strong>Cloud Cover:</strong> {weatherData.current.cloud_cover}%
               </p>
               <p>
-                <strong>Pressure:</strong>{" "}
+                <strong>Surface Pressure:</strong>{" "}
                 {isMetric
                   ? weatherData.current.surface_pressure.toFixed(2) + " hPa"
                   : convertPressure(weatherData.current.surface_pressure).toFixed(2) + " inHg"}
               </p>
+			  <p>
+				<strong>MSL Pressure:</strong>{" "}
+				{isMetric
+				  ? weatherData.current.pressure_msl.toFixed(2) + " hPa"
+				  : convertPressure(weatherData.current.pressure_msl).toFixed(2) + " inHg"}
+			  </p>
             </div>
             <div className="bg-gray-100 p-4 rounded-lg">
               <p>

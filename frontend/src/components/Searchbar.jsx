@@ -7,10 +7,11 @@ import useDebounce from "../hooks/useDebounce";
  * A search bar component that provides location suggestions.
  * @param {object} props - The props for the component.
  * @param {function} props.fetchWeather - Function to fetch weather data.
+ * @param {string} props.searchTerm - The current search term.
+ * @param {function} props.setSearchTerm - Function to set the search term.
  * @returns {JSX.Element} - The rendered component.
  */
-function Searchbar({ fetchWeather }) {
-  const [searchTerm, setSearchTerm] = useState("");
+function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -48,6 +49,7 @@ function Searchbar({ fetchWeather }) {
     if (searchTerm) {
       fetchWeather(searchTerm);
       setSuggestions([]);
+      setSearchTerm("");
     }
   };
 

@@ -120,11 +120,11 @@ app.get("/api/weather", async (req, res) => {
           latitude,
           longitude,
           daily:
-            "weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,sunrise,sunset,daylight_duration,sunshine_duration,uv_index_max,rain_sum,showers_sum,snowfall_sum,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,visibility_mean,visibility_min,visibility_max,surface_pressure_mean,surface_pressure_max,surface_pressure_min,cloud_cover_mean,cloud_cover_max,cloud_cover_min",
+            "weather_code,temperature_2m_max,temperature_2m_min,sunset,sunrise,daylight_duration,uv_index_max,apparent_temperature_max,apparent_temperature_min,rain_sum,showers_sum,snowfall_sum,precipitation_sum,precipitation_hours,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration",
           hourly:
-            "temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,visibility,cloud_cover,surface_pressure,weather_code,snow_depth,snowfall,showers,rain,uv_index",
+            ",temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,rain,showers,snowfall,weather_code,pressure_msl,surface_pressure,cloud_cover,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day",
           current:
-            "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,rain,showers,snowfall,pressure_msl",
+            "temperature_2m,apparent_temperature,relative_humidity_2m,is_day,precipitation,rain,snowfall,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_gusts_10m,wind_direction_10m,wind_speed_10m",
           wind_speed_unit: "kmh",
           temperature_unit: "celsius",
           precipitation_unit: "mm",

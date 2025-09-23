@@ -33,6 +33,20 @@ function DailyForecastCard({ dailyData, isMetric }) {
     weatherCode: dailyData.weather_code[index],
     sunrise: dailyData.sunrise[index],
     sunset: dailyData.sunset[index],
+    daylight_duration: dailyData.daylight_duration[index],
+    uv_index_max: dailyData.uv_index_max[index],
+    apparent_temperature_max: dailyData.apparent_temperature_max[index],
+    apparent_temperature_min: dailyData.apparent_temperature_min[index],
+    rain_sum: dailyData.rain_sum[index],
+    showers_sum: dailyData.showers_sum[index],
+    snowfall_sum: dailyData.snowfall_sum[index],
+    precipitation_sum: dailyData.precipitation_sum[index],
+    precipitation_hours: dailyData.precipitation_hours[index],
+    precipitation_probability_max: dailyData.precipitation_probability_max[index],
+    wind_speed_10m_max: dailyData.wind_speed_10m_max[index],
+    wind_gusts_10m_max: dailyData.wind_gusts_10m_max[index],
+    wind_direction_10m_dominant: dailyData.wind_direction_10m_dominant[index],
+    sunshine_duration: dailyData.sunshine_duration[index],
   }));
 
   return (
@@ -54,10 +68,7 @@ function DailyForecastCard({ dailyData, isMetric }) {
       <div className="overflow-x-auto pb-4">
         <div className="flex space-x-4">
           {data.map((day, index) => (
-            <div
-              key={index}
-              className="card flex-shrink-0 w-40 text-center"
-            >
+            <div key={index} className="card flex-shrink-0 w-40 text-center">
               <p className="font-bold">{day.time}</p>
               <p className="text-xl">
                 {Math.round(
@@ -75,17 +86,20 @@ function DailyForecastCard({ dailyData, isMetric }) {
               <p className="text-sm text-gray-600">
                 Sunrise:{" "}
                 {new Date(day.sunrise).toLocaleTimeString([], {
-                  hour: "2-digit",
+                  hour: "numeric",
                   minute: "2-digit",
                 })}
               </p>
               <p className="text-sm text-gray-600">
                 Sunset:{" "}
                 {new Date(day.sunset).toLocaleTimeString([], {
-                  hour: "2-digit",
+                  hour: "numeric",
                   minute: "2-digit",
                 })}
               </p>
+              <p className="text-sm text-gray-600">Daylight: {day.daylight_duration}</p>
+              <p className="text-sm text-gray-600">UV Index: {day.uv_index_max}</p>
+              <p className="text-sm text-gray-600">Sunshine: {day.sunshine_duration}</p>
             </div>
           ))}
         </div>
