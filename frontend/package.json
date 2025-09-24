@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "^4.1.13",
     "axios": "^1.12.2",
     "babel-jest": "^30.1.2",
+    "qweather-icons": "^1.8.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "recharts": "^3.2.1",

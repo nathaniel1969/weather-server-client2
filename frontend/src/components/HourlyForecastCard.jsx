@@ -22,30 +22,51 @@ import { convertTemperature, getWeatherDescription } from "../utils/helpers";
 function HourlyForecastCard({ hourlyData, isMetric }) {
   const [numHours, setNumHours] = useState(12);
 
-  const data = hourlyData.time.slice(0, numHours).map((time, index) => ({
-    time: new Date(time).toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit",
-    }),
-    temperature: hourlyData.temperature_2m[index],
-    precipitation: hourlyData.precipitation_probability[index],
-    weatherCode: hourlyData.weather_code[index],
-    relative_humidity_2m: hourlyData.relative_humidity_2m[index],
-    dew_point_2m: hourlyData.dew_point_2m[index],
-    apparent_temperature: hourlyData.apparent_temperature[index],
-    rain: hourlyData.rain[index],
-    showers: hourlyData.showers[index],
-    snowfall: hourlyData.snowfall[index],
-    pressure_msl: hourlyData.pressure_msl[index],
-    surface_pressure: hourlyData.surface_pressure[index],
-    cloud_cover: hourlyData.cloud_cover[index],
-    visibility: hourlyData.visibility[index],
-    wind_speed_10m: hourlyData.wind_speed_10m[index],
-    wind_direction_10m: hourlyData.wind_direction_10m[index],
-    wind_gusts_10m: hourlyData.wind_gusts_10m[index],
-    uv_index: hourlyData.uv_index[index],
-    is_day: hourlyData.is_day[index],
-  }));
+  // Find the index of the next hour after the current hour
+  const now = new Date();
+  const currentHour = now.getHours();
+  let startIndex = 0;
+  for (let i = 0; i < hourlyData.time.length; i++) {
+    const hour = new Date(hourlyData.time[i]).getHours();
+    if (hour > currentHour) {
+      startIndex = i;
+      break;
+    }
+  }
+
+  const data = hourlyData.time
+    .slice(startIndex, startIndex + numHours)
+    .map((time, index) => {
+      const realIndex = startIndex + index;
+      // Convert temperature if needed
+      const temp = hourlyData.temperature_2m[realIndex];
+      return {
+        time: new Date(time).toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+        }),
+        temperature: isMetric ? temp : convertTemperature(temp),
+        precipitation: hourlyData.precipitation_probability[realIndex],
+        weatherCode: hourlyData.weather_code[realIndex],
+        relative_humidity_2m: hourlyData.relative_humidity_2m[realIndex],
+        dew_point_2m: hourlyData.dew_point_2m[realIndex],
+        apparent_temperature: isMetric
+          ? hourlyData.apparent_temperature[realIndex]
+          : convertTemperature(hourlyData.apparent_temperature[realIndex]),
+        rain: hourlyData.rain[realIndex],
+        showers: hourlyData.showers[realIndex],
+        snowfall: hourlyData.snowfall[realIndex],
+        pressure_msl: hourlyData.pressure_msl[realIndex],
+        surface_pressure: hourlyData.surface_pressure[realIndex],
+        cloud_cover: hourlyData.cloud_cover[realIndex],
+        visibility: hourlyData.visibility[realIndex],
+        wind_speed_10m: hourlyData.wind_speed_10m[realIndex],
+        wind_direction_10m: hourlyData.wind_direction_10m[realIndex],
+        wind_gusts_10m: hourlyData.wind_gusts_10m[realIndex],
+        uv_index: hourlyData.uv_index[realIndex],
+        is_day: hourlyData.is_day[realIndex],
+      };
+    });
 
   return (
     <div className="card">
@@ -66,25 +87,26 @@ function HourlyForecastCard({ hourlyData, isMetric }) {
       <div className="overflow-x-auto pb-4">
         <div className="flex space-x-4">
           {data.map((hour, index) => (
-            <div
-              key={index}
-              className="card flex-shrink-0 w-32 text-center"
-            >
+            <div key={index} className="card flex-shrink-0 w-32 text-center">
               <p className="font-bold">{hour.time}</p>
               <p className="text-2xl">
-                {Math.round(
-                  isMetric
-                    ? hour.temperature
-                    : convertTemperature(hour.temperature)
-                )}
+                {Math.round(hour.temperature)}
                 {isMetric ? "°C" : "°F"}
               </p>
+              <i
+                className={`qi-${hour.weatherCode} qi text-3xl`}
+                aria-label="Weather icon"
+              ></i>
               <p className="text-sm text-gray-600">
                 {getWeatherDescription(hour.weatherCode)}
               </p>
-              <p className="text-sm text-gray-600">Precip: {hour.precipitation}%</p>
+              <p className="text-sm text-gray-600">
+                Precip: {hour.precipitation}%
+              </p>
               <p className="text-sm text-gray-600">UV: {hour.uv_index}</p>
-              <p className="text-sm text-gray-600">Clouds: {hour.cloud_cover}%</p>
+              <p className="text-sm text-gray-600">
+                Clouds: {hour.cloud_cover}%
+              </p>
             </div>
           ))}
         </div>
