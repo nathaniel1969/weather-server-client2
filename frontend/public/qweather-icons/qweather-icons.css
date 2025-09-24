@@ -5,6 +5,7 @@
     url("/qweather-icons/fonts/qweather-icons.ttf") format("truetype");
 }
 
+.qi,
 [class^="qi-"]::before,
 [class*=" qi-"]::before {
   display: inline-block;
