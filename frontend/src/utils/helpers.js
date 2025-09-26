@@ -4,6 +4,13 @@
  */
 
 /**
+ * Conversion factors for metric to imperial units.
+ */
+const KMH_TO_MPH = 1.60934;
+const MM_TO_IN = 25.4;
+const HPA_TO_INHG = 0.02953;
+
+/**
  * Converts temperature from Celsius to Fahrenheit.
  * @param {number} temp - The temperature in Celsius.
  * @returns {number} - The converted temperature in Fahrenheit.
@@ -18,7 +25,7 @@ export const convertTemperature = (temp) => {
  * @returns {number} - The converted speed in mph.
  */
 export const convertSpeed = (speed) => {
-  return speed / 1.60934;
+  return speed / KMH_TO_MPH;
 };
 
 /**
@@ -27,7 +34,7 @@ export const convertSpeed = (speed) => {
  * @returns {number} - The converted precipitation in inches.
  */
 export const convertPrecipitation = (precipitation) => {
-  return precipitation / 25.4;
+  return precipitation / MM_TO_IN;
 };
 
 /**
@@ -36,7 +43,7 @@ export const convertPrecipitation = (precipitation) => {
  * @returns {number} - The converted pressure in inHg.
  */
 export const convertPressure = (pressure) => {
-  return pressure * 0.02953;
+  return pressure * HPA_TO_INHG;
 };
 
 /**
@@ -76,4 +83,68 @@ export const getWeatherDescription = (code) => {
     99: "Thunderstorm with heavy hail",
   };
   return descriptions[code] || "Unknown";
+};
+
+/**
+ * Maps WMO weather codes to QWeather icon codes.
+ * @param {number} code - The WMO weather code from the API.
+ * @param {number} isDay - 1 for day, 0 for night.
+ * @returns {number} - The corresponding QWeather icon code.
+ */
+export const getIconCode = (code, isDay = 1) => {
+  const wmoToQWeather = {
+    0: isDay ? 100 : 150, // Clear
+    1: isDay ? 101 : 151, // Mainly clear
+    2: isDay ? 103 : 153, // Partly cloudy
+    3: 104, // Overcast
+    45: 501, // Fog
+    48: 501, // Depositing rime fog
+    51: 305, // Drizzle: Light
+    53: 306, // Drizzle: Moderate
+    55: 307, // Drizzle: Dense
+    56: 310, // Freezing Drizzle: Light
+    57: 311, // Freezing Drizzle: Dense
+    61: 305, // Rain: Slight
+    63: 306, // Rain: Moderate
+    65: 307, // Rain: Heavy
+    66: 310, // Freezing Rain: Light
+    67: 311, // Freezing Rain: Heavy
+    71: 400, // Snow fall: Slight
+    73: 401, // Snow fall: Moderate
+    75: 402, // Snow fall: Heavy
+    77: 403, // Snow grains
+    80: 300, // Rain showers: Slight
+    81: 301, // Rain showers: Moderate
+    82: 302, // Rain showers: Violent
+    85: 404, // Snow showers slight
+    86: 405, // Snow showers heavy
+    95: 302, // Thunderstorm: Slight or moderate
+    96: 308, // Thunderstorm with slight hail
+    99: 308, // Thunderstorm with heavy hail
+  };
+  return wmoToQWeather[code] || 999; // 999 is 'Unknown'
+};
+
+/**
+ * Formats a duration in seconds to a string like "Xh Ym Zs".
+ * @param {number} durationInSeconds - The duration in seconds.
+ * @returns {string} - The formatted duration string.
+ */
+export const formatDuration = (durationInSeconds) => {
+  const hours = Math.floor(durationInSeconds / 3600);
+  const minutes = Math.floor((durationInSeconds % 3600) / 60);
+  const seconds = Math.floor(durationInSeconds % 60);
+
+  let formattedDuration = "";
+  if (hours > 0) {
+    formattedDuration += `${hours}h `;
+  }
+  if (minutes > 0) {
+    formattedDuration += `${minutes}m `;
+  }
+  if (seconds > 0) {
+    formattedDuration += `${seconds}s`;
+  }
+
+  return formattedDuration.trim();
 };

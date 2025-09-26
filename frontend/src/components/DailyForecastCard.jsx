@@ -10,7 +10,13 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { convertTemperature, getWeatherDescription } from "../utils/helpers";
+import {
+  convertTemperature,
+  getWeatherDescription,
+  getIconCode,
+  formatDuration,
+} from "../utils/helpers";
+import WeatherValue from "./WeatherValue";
 
 /**
  * Displays the daily weather forecast.
@@ -68,9 +74,9 @@ function DailyForecastCard({ dailyData, isMetric }) {
         <h2 className="text-2xl font-bold">Daily Forecast</h2>
       </div>
       <div className="overflow-x-auto pb-4">
-        <div className="flex space-x-4">
+        <div className="flex space-x-4 flex-nowrap">
           {data.map((day, index) => (
-            <div key={index} className="card flex-shrink-0 w-40 text-center">
+            <div key={index} className="card flex-shrink-0 w-50 text-center">
               <p className="font-bold">{day.time}</p>
               <p className="text-xl">
                 {Math.round(day.maxTemp)}
@@ -78,7 +84,7 @@ function DailyForecastCard({ dailyData, isMetric }) {
                 {isMetric ? "°C" : "°F"}
               </p>
               <i
-                className={`qi-${day.weatherCode} qi text-3xl`}
+                className={`qi-${getIconCode(day.weatherCode)} text-3xl`}
                 aria-label="Weather icon"
               ></i>
               <p className="text-sm text-gray-600">
@@ -99,13 +105,17 @@ function DailyForecastCard({ dailyData, isMetric }) {
                 })}
               </p>
               <p className="text-sm text-gray-600">
-                Daylight: {day.daylight_duration}
+                Daylight: {formatDuration(day.daylight_duration)}
               </p>
+              <WeatherValue
+                label="UV Index"
+                value={day.uv_index_max}
+                metricUnit=""
+                imperialUnit=""
+                isMetric={isMetric}
+              />
               <p className="text-sm text-gray-600">
-                UV Index: {day.uv_index_max}
-              </p>
-              <p className="text-sm text-gray-600">
-                Sunshine: {day.sunshine_duration}
+                Sunshine: {formatDuration(day.sunshine_duration)}
               </p>
             </div>
           ))}

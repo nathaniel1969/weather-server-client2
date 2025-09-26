@@ -2,10 +2,12 @@ import React from "react";
 import {
   convertTemperature,
   getWeatherDescription,
+  getIconCode,
   convertSpeed,
   convertPrecipitation,
   convertPressure,
 } from "../utils/helpers";
+import WeatherValue from "./WeatherValue";
 
 /**
  * Displays the current weather information.
@@ -60,7 +62,10 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
               </span>
               <span className="text-3xl mt-2">{isMetric ? "°C" : "°F"}</span>
               <i
-                className={`qi-${weatherData.current.weather_code} qi text-5xl`}
+                className={`qi-${getIconCode(
+                  weatherData.current.weather_code,
+                  weatherData.current.is_day
+                )} qi text-5xl`}
                 aria-label="Weather icon"
               ></i>
             </div>
@@ -74,93 +79,69 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
           </div>
           <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="bg-gray-100 p-4 rounded-lg">
-              <p>
-                <strong>Apparent Temperature:</strong>{" "}
-                {Math.round(
-                  isMetric
-                    ? weatherData.current.apparent_temperature
-                    : convertTemperature(
-                        weatherData.current.apparent_temperature
-                      )
-                )}
-                {isMetric ? "°C" : "°F"}
-              </p>
-              <p>
-                <strong>Humidity:</strong>{" "}
-                {weatherData.current.relative_humidity_2m}%
-              </p>
-              <p>
-                <strong>Precipitation:</strong>{" "}
-                {isMetric
-                  ? weatherData.current.precipitation.toFixed(2) + " mm"
-                  : convertPrecipitation(
-                      weatherData.current.precipitation
-                    ).toFixed(2) + " in"}
-              </p>
-              <p>
-                <strong>Cloud Cover:</strong> {weatherData.current.cloud_cover}%
-              </p>
-              <p>
-                <strong>Surface Pressure:</strong>{" "}
-                {isMetric
-                  ? weatherData.current.surface_pressure.toFixed(2) + " hPa"
-                  : convertPressure(
-                      weatherData.current.surface_pressure
-                    ).toFixed(2) + " inHg"}
-              </p>
-              <p>
-                <strong>MSL Pressure:</strong>{" "}
-                {isMetric
-                  ? weatherData.current.pressure_msl.toFixed(2) + " hPa"
-                  : convertPressure(weatherData.current.pressure_msl).toFixed(
-                      2
-                    ) + " inHg"}
-              </p>
+              <WeatherValue
+                label="Feels Like"
+                value={weatherData.current.apparent_temperature}
+                metricUnit="°C"
+                imperialUnit="°F"
+                convertFn={convertTemperature}
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="Humidity"
+                value={weatherData.current.relative_humidity_2m}
+                metricUnit="%"
+                imperialUnit="%"
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="Precipitation"
+                value={weatherData.current.precipitation}
+                metricUnit="mm"
+                imperialUnit="in"
+                convertFn={convertPrecipitation}
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="Cloud Cover"
+                value={weatherData.current.cloud_cover}
+                metricUnit="%"
+                imperialUnit="%"
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="Surface Pressure"
+                value={weatherData.current.surface_pressure}
+                metricUnit="hPa"
+                imperialUnit="inHg"
+                convertFn={convertPressure}
+                isMetric={isMetric}
+              />
             </div>
             <div className="bg-gray-100 p-4 rounded-lg">
-              <p>
-                <strong>Wind Speed:</strong>{" "}
-                {isMetric
-                  ? weatherData.current.wind_speed_10m.toFixed(2) + " km/h"
-                  : convertSpeed(weatherData.current.wind_speed_10m).toFixed(
-                      2
-                    ) + " mph"}
-              </p>
-              <p>
-                <strong>Wind Direction:</strong>{" "}
-                {weatherData.current.wind_direction_10m}°
-              </p>
-              <p>
-                <strong>Wind Gusts:</strong>{" "}
-                {isMetric
-                  ? weatherData.current.wind_gusts_10m.toFixed(2) + " km/h"
-                  : convertSpeed(weatherData.current.wind_gusts_10m).toFixed(
-                      2
-                    ) + " mph"}
-              </p>
-              <p>
-                <strong>Rain:</strong>{" "}
-                {isMetric
-                  ? weatherData.current.rain.toFixed(2) + " mm"
-                  : convertPrecipitation(weatherData.current.rain).toFixed(2) +
-                    " in"}
-              </p>
-              <p>
-                <strong>Showers:</strong>{" "}
-                {isMetric
-                  ? weatherData.current.showers.toFixed(2) + " mm"
-                  : convertPrecipitation(weatherData.current.showers).toFixed(
-                      2
-                    ) + " in"}
-              </p>
-              <p>
-                <strong>Snowfall:</strong>{" "}
-                {isMetric
-                  ? weatherData.current.snowfall.toFixed(2) + " mm"
-                  : convertPrecipitation(weatherData.current.snowfall).toFixed(
-                      2
-                    ) + " in"}
-              </p>
+              <WeatherValue
+                label="Wind Speed"
+                value={weatherData.current.wind_speed_10m}
+                metricUnit="km/h"
+                imperialUnit="mph"
+                convertFn={convertSpeed}
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="Wind Direction"
+                value={weatherData.current.wind_direction_10m}
+                metricUnit="°"
+                imperialUnit="°"
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="Wind Gusts"
+                value={weatherData.current.wind_gusts_10m}
+                metricUnit="km/h"
+                imperialUnit="mph"
+                convertFn={convertSpeed}
+                isMetric={isMetric}
+              />
             </div>
           </div>
         </div>

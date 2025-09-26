@@ -14,6 +14,8 @@ function App() {
   const [locationName, setLocationName] = useState("");
   const [isMetric, setIsMetric] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   /**
    * Handles the toggle between metric and imperial units.
@@ -28,6 +30,8 @@ function App() {
    * @param {string|object} location - The location to fetch the weather for. Can be a string or a suggestion object.
    */
   const fetchWeather = async (location) => {
+    setLoading(true);
+    setError(null);
     try {
       let suggestion;
       if (typeof location === "string") {
@@ -37,7 +41,8 @@ function App() {
         if (geoResponse.data.results && geoResponse.data.results.length > 0) {
           suggestion = geoResponse.data.results[0];
         } else {
-          alert("No geocoding results found. Please check your search input.");
+          setError("Location not found. Please check your search input.");
+          setLoading(false);
           setSearchTerm("");
           return;
         }
@@ -52,8 +57,9 @@ function App() {
       setLocationName(suggestion.formatted);
     } catch (error) {
       console.error("Error fetching weather data:", error);
-      alert("Error fetching weather data. Please try again later.");
+      setError("Error fetching weather data. Please try again later.");
     }
+    setLoading(false);
   };
 
   return (
@@ -74,16 +80,25 @@ function App() {
           setSearchTerm={setSearchTerm}
         />
 
+        {loading && <p className="text-center mt-8">Loading...</p>}
+        {error && <p className="text-center text-red-500 mt-8">{error}</p>}
+
         <div className="grid grid-cols-1 gap-8 mt-8">
-          <CurrentWeatherCard
-            weatherData={weatherData}
-            locationName={locationName}
-            isMetric={isMetric}
-          />
-          {weatherData && (
+          {!loading && !error && weatherData && (
             <>
-              <HourlyForecastCard hourlyData={weatherData.hourly} isMetric={isMetric} />
-              <DailyForecastCard dailyData={weatherData.daily} isMetric={isMetric} />
+              <CurrentWeatherCard
+                weatherData={weatherData}
+                locationName={locationName}
+                isMetric={isMetric}
+              />
+              <HourlyForecastCard
+                hourlyData={weatherData.hourly}
+                isMetric={isMetric}
+              />
+              <DailyForecastCard
+                dailyData={weatherData.daily}
+                isMetric={isMetric}
+              />
             </>
           )}
         </div>

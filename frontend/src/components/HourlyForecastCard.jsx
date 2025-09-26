@@ -10,7 +10,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { convertTemperature, getWeatherDescription } from "../utils/helpers";
+import { convertTemperature, getWeatherDescription, getIconCode } from "../utils/helpers";
+import WeatherValue from "./WeatherValue";
 
 /**
  * Displays the hourly weather forecast.
@@ -94,19 +95,33 @@ function HourlyForecastCard({ hourlyData, isMetric }) {
                 {isMetric ? "°C" : "°F"}
               </p>
               <i
-                className={`qi-${hour.weatherCode} qi text-3xl`}
+                className={`qi-${getIconCode(hour.weatherCode, hour.is_day)} text-3xl`}
                 aria-label="Weather icon"
               ></i>
               <p className="text-sm text-gray-600">
                 {getWeatherDescription(hour.weatherCode)}
               </p>
-              <p className="text-sm text-gray-600">
-                Precip: {hour.precipitation}%
-              </p>
-              <p className="text-sm text-gray-600">UV: {hour.uv_index}</p>
-              <p className="text-sm text-gray-600">
-                Clouds: {hour.cloud_cover}%
-              </p>
+              <WeatherValue
+                label="Precip"
+                value={hour.precipitation}
+                metricUnit="%"
+                imperialUnit="%"
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="UV"
+                value={hour.uv_index}
+                metricUnit=""
+                imperialUnit=""
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="Clouds"
+                value={hour.cloud_cover}
+                metricUnit="%"
+                imperialUnit="%"
+                isMetric={isMetric}
+              />
             </div>
           ))}
         </div>
