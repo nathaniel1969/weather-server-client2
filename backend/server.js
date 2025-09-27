@@ -6,8 +6,13 @@
 import express from "express";
 import axios from "axios";
 import dotenv from "dotenv";
+import * as unsplash from "unsplash-js";
 
 dotenv.config();
+
+const unsplashApi = unsplash.createApi({
+  accessKey: process.env.UNSPLASH_ACCESS_KEY,
+});
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -22,6 +27,40 @@ app.use((req, res, next) => {
     "Origin, X-Requested-With, Content-Type, Accept"
   );
   next();
+});
+
+/**
+ * Unsplash API endpoint for fetching a random image.
+ * @name GET /api/unsplash
+ * @function
+ * @memberof module:server
+ * @param {object} req - Express request object.
+ * @param {string} req.query.query - The search query for the image.
+ * @param {object} res - Express response object.
+ * @returns {object} - JSON response with the image data from Unsplash.
+ */
+app.get("/api/unsplash", async (req, res) => {
+  const { query } = req.query;
+  if (!query) {
+    return res.status(400).json({ error: "Query parameter is required" });
+  }
+
+  try {
+    const result = await unsplashApi.photos.getRandom({
+      query,
+      orientation: "landscape",
+    });
+
+    if (result.errors) {
+      console.error("Unsplash API error:", result.errors);
+      return res.status(500).json({ error: "Failed to fetch image from Unsplash" });
+    }
+
+    res.json(result.response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch image from Unsplash" });
+  }
 });
 
 /**

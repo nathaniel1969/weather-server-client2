@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   convertTemperature,
   getWeatherDescription,
@@ -18,6 +18,30 @@ import WeatherValue from "./WeatherValue";
  * @returns {JSX.Element} - The rendered component.
  */
 function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
+  const [backgroundImage, setBackgroundImage] = useState("");
+
+  useEffect(() => {
+    if (weatherData) {
+      const fetchImage = async () => {
+        const weatherDescription = getWeatherDescription(
+          weatherData.current.weather_code
+        );
+        try {
+          const response = await fetch(
+            `http://localhost:3001/api/unsplash?query=${weatherDescription}`
+          );
+          const data = await response.json();
+          if (data.urls && data.urls.regular) {
+            setBackgroundImage(data.urls.regular);
+          }
+        } catch (error) {
+          console.error("Failed to fetch image from Unsplash", error);
+        }
+      };
+      fetchImage();
+    }
+  }, [weatherData]);
+
   const getFormattedDate = () => {
     if (!weatherData) return "";
     const date = new Date();
@@ -45,7 +69,14 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
   };
 
   return (
-    <div className="card">
+    <div
+      className="card"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       {weatherData && (
         <div>
           <div className="text-center mb-4">
