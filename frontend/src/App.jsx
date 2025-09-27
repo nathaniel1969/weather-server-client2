@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import axios from "axios";
 import CurrentWeatherCard from "./components/CurrentWeatherCard";
 import HourlyForecastCard from "./components/HourlyForecastCard";
@@ -7,6 +7,7 @@ import Header from "./components/Header";
 
 /**
  * The main component of the weather application.
+ * Handles state, API calls, and renders weather cards.
  * @returns {JSX.Element} - The rendered component.
  */
 function App() {
@@ -19,21 +20,24 @@ function App() {
 
   /**
    * Handles the toggle between metric and imperial units.
+   * Memoized for performance.
    * @param {boolean} metric - If true, the units are metric.
    */
-  const handleUnitToggle = (metric) => {
+  const handleUnitToggle = useCallback((metric) => {
     setIsMetric(metric);
-  };
+  }, []);
 
   /**
    * Fetches the weather data for a given location.
+   * Memoized for performance.
    * @param {string|object} location - The location to fetch the weather for. Can be a string or a suggestion object.
    */
-  const fetchWeather = async (location) => {
+  const fetchWeather = useCallback(async (location) => {
     setLoading(true);
     setError(null);
     try {
       let suggestion;
+      // If location is a string, fetch geocode suggestion
       if (typeof location === "string") {
         const geoResponse = await axios.get(
           `http://localhost:3001/api/geocode?query=${location}`
@@ -49,7 +53,7 @@ function App() {
       } else {
         suggestion = location;
       }
-
+      // Fetch weather data for the selected suggestion
       const response = await axios.get(
         `http://localhost:3001/api/weather?latitude=${suggestion.geometry.lat}&longitude=${suggestion.geometry.lng}&timezone=${suggestion.timezone}`
       );
@@ -60,8 +64,9 @@ function App() {
       setError("Error fetching weather data. Please try again later.");
     }
     setLoading(false);
-  };
+  }, []);
 
+  // Main app layout and rendering
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
       <main className="w-full max-w-4xl">
@@ -72,6 +77,7 @@ function App() {
           Your simple weather forecast app
         </p>
 
+        {/* Header contains search and unit toggle */}
         <Header
           fetchWeather={fetchWeather}
           isMetric={isMetric}
@@ -83,6 +89,7 @@ function App() {
         {loading && <p className="text-center mt-8">Loading...</p>}
         {error && <p className="text-center text-red-500 mt-8">{error}</p>}
 
+        {/* Weather cards: only show if data is loaded and no error */}
         <div className="grid grid-cols-1 gap-8 mt-8">
           {!loading && !error && weatherData && (
             <>

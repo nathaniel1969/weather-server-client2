@@ -19,23 +19,17 @@ function WeatherValue({
   imperialUnit,
   convertFn,
   isMetric,
-  precision = 2,
 }) {
-  if (value === null || typeof value === "undefined") {
-    return (
-      <p>
-        <strong>{label}:</strong> N/A
-      </p>
-    );
-  }
-
-  const displayValue = isMetric || !convertFn ? value : convertFn(value);
-  const displayUnit = isMetric ? metricUnit : imperialUnit;
-
+  // Convert value if needed and select unit
+  const displayValue = isMetric ? value : convertFn ? convertFn(value) : value;
+  const unit = isMetric ? metricUnit : imperialUnit;
   return (
-    <p>
-      <strong>{label}:</strong> {displayValue.toFixed(precision)} {displayUnit}
-    </p>
+    <div className="flex justify-between items-center py-1">
+      <span className="font-medium text-gray-700">{label}:</span>
+      <span className="text-gray-900">
+        {Math.round(displayValue)} {unit}
+      </span>
+    </div>
   );
 }
 

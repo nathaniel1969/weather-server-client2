@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   convertTemperature,
   getWeatherDescription,
@@ -10,7 +10,8 @@ import {
 import WeatherValue from "./WeatherValue";
 
 /**
- * Displays the current weather information.
+ * Displays the current weather information card.
+ * Fetches a background image from Unsplash based on weather description.
  * @param {object} props - The props for the component.
  * @param {object} props.weatherData - The weather data from the API.
  * @param {string} props.locationName - The name of the location.
@@ -20,6 +21,7 @@ import WeatherValue from "./WeatherValue";
 function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
   const [backgroundImage, setBackgroundImage] = useState("");
 
+  // Fetch Unsplash image when weatherData changes
   useEffect(() => {
     if (weatherData) {
       const fetchImage = async () => {
@@ -42,23 +44,23 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
     }
   }, [weatherData]);
 
-  const getFormattedDate = () => {
+  // Memoize formatted date for performance
+  const getFormattedDate = useMemo(() => {
     if (!weatherData) return "";
     const date = new Date();
-    // Format: September 24th, 2025
     const day = date.getDate();
     const month = date.toLocaleString("en-US", { month: "long" });
     const year = date.getFullYear();
-    // Add ordinal suffix to day
     const getOrdinal = (n) => {
       const s = ["th", "st", "nd", "rd"],
         v = n % 100;
       return s[(v - 20) % 10] || s[v] || s[0];
     };
     return `${month} ${day}${getOrdinal(day)}, ${year}`;
-  };
+  }, [weatherData]);
 
-  const getFormattedTime = () => {
+  // Memoize formatted time for performance
+  const getFormattedTime = useMemo(() => {
     if (!weatherData) return "";
     const date = new Date();
     return date.toLocaleTimeString("en-US", {
@@ -66,8 +68,9 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
       hour: "numeric",
       minute: "2-digit",
     });
-  };
+  }, [weatherData]);
 
+  // Render weather card with background image and weather values
   return (
     <div
       className="card"
@@ -81,8 +84,8 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
         <div>
           <div className="text-center mb-4">
             <h2 className="text-2xl font-bold mb-2">{locationName}</h2>
-            <p className="text-lg text-gray-600">{getFormattedDate()}</p>
-            <p className="text-lg text-gray-600">{getFormattedTime()}</p>
+            <p className="text-lg text-gray-600">{getFormattedDate}</p>
+            <p className="text-lg text-gray-600">{getFormattedTime}</p>
             <div className="flex items-center justify-center mt-4 space-x-2">
               <span className="text-5xl font-bold">
                 {Math.round(
@@ -92,6 +95,7 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
                 )}
               </span>
               <span className="text-3xl mt-2">{isMetric ? "°C" : "°F"}</span>
+              {/* Weather icon mapped from weather code and day/night */}
               <i
                 className={`qi-${getIconCode(
                   weatherData.current.weather_code,
@@ -108,6 +112,7 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
               {weatherData.current.is_day ? "Day" : "Night"}
             </p>
           </div>
+          {/* Weather values grid */}
           <div className="grid grid-cols-2 gap-4 mt-6">
             <div className="bg-gray-100 p-4 rounded-lg">
               <WeatherValue

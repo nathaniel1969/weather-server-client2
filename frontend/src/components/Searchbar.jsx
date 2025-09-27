@@ -1,22 +1,27 @@
-import React from 'react';
+import React from "react";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import useDebounce from "../hooks/useDebounce";
 
 /**
- * A search bar component that provides location suggestions.
+ * Searchbar component for location input and suggestions.
+ * Uses debounced input to fetch location suggestions from backend geocode API.
  * @param {object} props - The props for the component.
- * @param {function} props.fetchWeather - Function to fetch weather data.
+ * @param {function} props.fetchWeather - Function to fetch weather data for a location.
  * @param {string} props.searchTerm - The current search term.
  * @param {function} props.setSearchTerm - Function to set the search term.
  * @returns {JSX.Element} - The rendered component.
  */
 function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
+  // Suggestions for location autocomplete
   const [suggestions, setSuggestions] = useState([]);
+  // Controls whether suggestions dropdown is shown
   const [showSuggestions, setShowSuggestions] = useState(true);
+  // Debounced search term for API requests
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   useEffect(() => {
+    // Fetch location suggestions from backend when debounced term changes
     const fetchSuggestions = async () => {
       if (debouncedSearchTerm.length > 2) {
         try {
@@ -31,12 +36,16 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
         setSuggestions([]);
       }
     };
-
     if (showSuggestions) {
-        fetchSuggestions();
+      fetchSuggestions();
     }
   }, [debouncedSearchTerm, showSuggestions]);
 
+  /**
+   * Handles click on a location suggestion.
+   * Sets search term and fetches weather for selected location.
+   * @param {object} suggestion - The selected location suggestion.
+   */
   const handleSuggestionClick = (suggestion) => {
     setSearchTerm(suggestion.formatted);
     setShowSuggestions(false);
@@ -44,6 +53,11 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
     fetchWeather(suggestion);
   };
 
+  /**
+   * Handles form submission for search.
+   * Fetches weather for the entered search term.
+   * @param {React.FormEvent} e - The form submit event.
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (searchTerm) {
@@ -53,10 +67,15 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
     }
   };
 
+  /**
+   * Handles input change in search bar.
+   * Shows suggestions and updates search term.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handleInputChange = (e) => {
     setShowSuggestions(true);
     setSearchTerm(e.target.value);
-  }
+  };
 
   return (
     <div className="relative">
@@ -75,6 +94,7 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
           Search
         </button>
       </form>
+      {/* Location suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
         <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1">
           {suggestions.slice(0, 10).map((suggestion, idx) => {

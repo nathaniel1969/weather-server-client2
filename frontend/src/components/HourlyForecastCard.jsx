@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useState } from "react";
 import {
   LineChart,
@@ -10,11 +10,16 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { convertTemperature, getWeatherDescription, getIconCode } from "../utils/helpers";
+import {
+  convertTemperature,
+  getWeatherDescription,
+  getIconCode,
+} from "../utils/helpers";
 import WeatherValue from "./WeatherValue";
 
 /**
- * Displays the hourly weather forecast.
+ * Displays the hourly weather forecast card.
+ * Memoizes data mapping for performance.
  * @param {object} props - The props for the component.
  * @param {object} props.hourlyData - The hourly weather data from the API.
  * @param {boolean} props.isMetric - Boolean to determine if the units are metric.
@@ -35,40 +40,43 @@ function HourlyForecastCard({ hourlyData, isMetric }) {
     }
   }
 
-  const data = hourlyData.time
-    .slice(startIndex, startIndex + numHours)
-    .map((time, index) => {
-      const realIndex = startIndex + index;
-      // Convert temperature if needed
-      const temp = hourlyData.temperature_2m[realIndex];
-      return {
-        time: new Date(time).toLocaleTimeString([], {
-          hour: "numeric",
-          minute: "2-digit",
-        }),
-        temperature: isMetric ? temp : convertTemperature(temp),
-        precipitation: hourlyData.precipitation_probability[realIndex],
-        weatherCode: hourlyData.weather_code[realIndex],
-        relative_humidity_2m: hourlyData.relative_humidity_2m[realIndex],
-        dew_point_2m: hourlyData.dew_point_2m[realIndex],
-        apparent_temperature: isMetric
-          ? hourlyData.apparent_temperature[realIndex]
-          : convertTemperature(hourlyData.apparent_temperature[realIndex]),
-        rain: hourlyData.rain[realIndex],
-        showers: hourlyData.showers[realIndex],
-        snowfall: hourlyData.snowfall[realIndex],
-        pressure_msl: hourlyData.pressure_msl[realIndex],
-        surface_pressure: hourlyData.surface_pressure[realIndex],
-        cloud_cover: hourlyData.cloud_cover[realIndex],
-        visibility: hourlyData.visibility[realIndex],
-        wind_speed_10m: hourlyData.wind_speed_10m[realIndex],
-        wind_direction_10m: hourlyData.wind_direction_10m[realIndex],
-        wind_gusts_10m: hourlyData.wind_gusts_10m[realIndex],
-        uv_index: hourlyData.uv_index[realIndex],
-        is_day: hourlyData.is_day[realIndex],
-      };
-    });
+  // Memoize mapped hourly data for performance
+  const data = useMemo(() => {
+    return hourlyData.time
+      .slice(startIndex, startIndex + numHours)
+      .map((time, index) => {
+        const realIndex = startIndex + index;
+        const temp = hourlyData.temperature_2m[realIndex];
+        return {
+          time: new Date(time).toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+          }),
+          temperature: isMetric ? temp : convertTemperature(temp),
+          precipitation: hourlyData.precipitation_probability[realIndex],
+          weatherCode: hourlyData.weather_code[realIndex],
+          relative_humidity_2m: hourlyData.relative_humidity_2m[realIndex],
+          dew_point_2m: hourlyData.dew_point_2m[realIndex],
+          apparent_temperature: isMetric
+            ? hourlyData.apparent_temperature[realIndex]
+            : convertTemperature(hourlyData.apparent_temperature[realIndex]),
+          rain: hourlyData.rain[realIndex],
+          showers: hourlyData.showers[realIndex],
+          snowfall: hourlyData.snowfall[realIndex],
+          pressure_msl: hourlyData.pressure_msl[realIndex],
+          surface_pressure: hourlyData.surface_pressure[realIndex],
+          cloud_cover: hourlyData.cloud_cover[realIndex],
+          visibility: hourlyData.visibility[realIndex],
+          wind_speed_10m: hourlyData.wind_speed_10m[realIndex],
+          wind_direction_10m: hourlyData.wind_direction_10m[realIndex],
+          wind_gusts_10m: hourlyData.wind_gusts_10m[realIndex],
+          uv_index: hourlyData.uv_index[realIndex],
+          is_day: hourlyData.is_day[realIndex],
+        };
+      });
+  }, [hourlyData, isMetric, numHours, startIndex]);
 
+  // Render hourly forecast card and chart
   return (
     <div className="card">
       <div className="flex justify-between items-center mb-4">
@@ -94,8 +102,12 @@ function HourlyForecastCard({ hourlyData, isMetric }) {
                 {Math.round(hour.temperature)}
                 {isMetric ? "°C" : "°F"}
               </p>
+              {/* Weather icon mapped from weather code and day/night */}
               <i
-                className={`qi-${getIconCode(hour.weatherCode, hour.is_day)} text-3xl`}
+                className={`qi-${getIconCode(
+                  hour.weatherCode,
+                  hour.is_day
+                )} text-3xl`}
                 aria-label="Weather icon"
               ></i>
               <p className="text-sm text-gray-600">
@@ -126,6 +138,7 @@ function HourlyForecastCard({ hourlyData, isMetric }) {
           ))}
         </div>
       </div>
+      {/* Hourly temperature chart */}
       <div className="mt-6" style={{ width: "100%", height: 300 }}>
         <ResponsiveContainer>
           <LineChart data={data}>

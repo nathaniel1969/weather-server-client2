@@ -6,28 +6,34 @@
 import express from "express";
 import axios from "axios";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import cors from "cors";
 import * as unsplash from "unsplash-js";
 
 dotenv.config();
 
+/**
+ * The Unsplash API instance.
+ * @type {object}
+ */
 const unsplashApi = unsplash.createApi({
   accessKey: process.env.UNSPLASH_ACCESS_KEY,
 });
 
+/**
+ * The Express application.
+ * @type {object}
+ */
 const app = express();
+/**
+ * The port the server is listening on.
+ * @type {number}
+ */
 const port = process.env.PORT || 3001;
 
 app.use(express.json());
-
-// CORS configuration
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+app.use(helmet());
+app.use(cors());
 
 /**
  * Unsplash API endpoint for fetching a random image.
@@ -38,28 +44,43 @@ app.use((req, res, next) => {
  * @param {string} req.query.query - The search query for the image.
  * @param {object} res - Express response object.
  * @returns {object} - JSON response with the image data from Unsplash.
+ * @throws {400} If query parameter is missing.
+ * @throws {429} If rate limit is exceeded.
+ * @throws {500} If Unsplash API fails or other errors occur.
  */
 app.get("/api/unsplash", async (req, res) => {
   const { query } = req.query;
-  if (!query) {
-    return res.status(400).json({ error: "Query parameter is required" });
+  if (!query || typeof query !== "string" || query.length < 2) {
+    return res.status(400).json({
+      error:
+        "Query parameter is required and must be a string with at least 2 characters.",
+    });
   }
-
+  // TODO: Add caching and rate limit handling here
   try {
     const result = await unsplashApi.photos.getRandom({
       query,
       orientation: "landscape",
     });
-
     if (result.errors) {
       console.error("Unsplash API error:", result.errors);
-      return res.status(500).json({ error: "Failed to fetch image from Unsplash" });
+      return res.status(500).json({
+        error: "Failed to fetch image from Unsplash",
+        details: result.errors,
+      });
     }
-
     res.json(result.response);
   } catch (error) {
+    if (error.response && error.response.status === 429) {
+      return res
+        .status(429)
+        .json({ error: "Rate limit exceeded for Unsplash API." });
+    }
     console.error(error);
-    res.status(500).json({ error: "Failed to fetch image from Unsplash" });
+    res.status(500).json({
+      error: "Failed to fetch image from Unsplash",
+      details: error.message,
+    });
   }
 });
 
@@ -75,13 +96,18 @@ app.get("/api/unsplash", async (req, res) => {
  */
 app.get("/api/geocode", async (req, res) => {
   const { query } = req.query;
-  if (!query) {
-    return res.status(400).json({ error: "Query parameter is required" });
+  if (!query || typeof query !== "string" || query.length < 2) {
+    return res.status(400).json({
+      error:
+        "Query parameter is required and must be a string with at least 2 characters.",
+    });
   }
+  // TODO: Add caching and rate limit handling here
   try {
     const opencageApiKey = process.env.OPENCAGE_API_KEY;
     const geoResponse = await axios.get(
-      "https://api.opencagedata.com/geocode/v1/json",
+      process.env.OPENCAGE_URL ||
+        "https://api.opencagedata.com/geocode/v1/json",
       {
         params: {
           q: query,
@@ -125,8 +151,16 @@ app.get("/api/geocode", async (req, res) => {
     });
     res.json({ results });
   } catch (error) {
+    if (error.response && error.response.status === 429) {
+      return res
+        .status(429)
+        .json({ error: "Rate limit exceeded for geocoding API." });
+    }
     console.error(error);
-    res.status(500).json({ error: "Failed to fetch geocoding suggestions" });
+    res.status(500).json({
+      error: "Failed to fetch geocoding suggestions",
+      details: error.message,
+    });
   }
 });
 
@@ -144,16 +178,23 @@ app.get("/api/geocode", async (req, res) => {
  */
 app.get("/api/weather", async (req, res) => {
   const { latitude, longitude, timezone } = req.query;
-
-  if (!latitude || !longitude || !timezone) {
-    return res
-      .status(400)
-      .json({ error: "Latitude, longitude, and timezone are required" });
+  if (
+    !latitude ||
+    !longitude ||
+    !timezone ||
+    isNaN(Number(latitude)) ||
+    isNaN(Number(longitude)) ||
+    typeof timezone !== "string"
+  ) {
+    return res.status(400).json({
+      error:
+        "Latitude, longitude, and timezone are required and must be valid.",
+    });
   }
-
+  // TODO: Add caching and rate limit handling here
   try {
     const weatherResponse = await axios.get(
-      `https://api.open-meteo.com/v1/forecast`,
+      process.env.OPEN_METEO_URL || `https://api.open-meteo.com/v1/forecast`,
       {
         params: {
           latitude,
@@ -161,7 +202,7 @@ app.get("/api/weather", async (req, res) => {
           daily:
             "weather_code,temperature_2m_max,temperature_2m_min,sunset,sunrise,daylight_duration,uv_index_max,apparent_temperature_max,apparent_temperature_min,rain_sum,showers_sum,snowfall_sum,precipitation_sum,precipitation_hours,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration",
           hourly:
-            ",temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,rain,showers,snowfall,weather_code,pressure_msl,surface_pressure,cloud_cover,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day",
+            "temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,rain,showers,snowfall,weather_code,pressure_msl,surface_pressure,cloud_cover,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day",
           current:
             "temperature_2m,apparent_temperature,relative_humidity_2m,is_day,precipitation,rain,snowfall,showers,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_gusts_10m,wind_direction_10m,wind_speed_10m",
           wind_speed_unit: "kmh",
@@ -171,14 +212,25 @@ app.get("/api/weather", async (req, res) => {
         },
       }
     );
-
     res.json(weatherResponse.data);
   } catch (error) {
+    if (error.response && error.response.status === 429) {
+      return res
+        .status(429)
+        .json({ error: "Rate limit exceeded for weather API." });
+    }
     console.error(error);
-    res.status(500).json({ error: "Failed to fetch weather data" });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch weather data", details: error.message });
   }
 });
 
+/**
+ * Starts the server if not in a test environment.
+ * @function
+ * @memberof module:server
+ */
 if (process.env.NODE_ENV !== "test") {
   app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
