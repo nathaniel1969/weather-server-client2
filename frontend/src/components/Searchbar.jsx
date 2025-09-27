@@ -97,18 +97,18 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
       {/* Location suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
         <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1">
-          {suggestions.slice(0, 10).map((suggestion, idx) => {
-            return (
-              <li
-                key={suggestion.id || idx}
-                onClick={() => handleSuggestionClick(suggestion)}
-                className="p-2 cursor-pointer hover:bg-gray-200 flex items-center"
-              >
-                <span className="mr-2">{suggestion.flag}</span>
-                <span>{suggestion.formatted}</span>
-              </li>
-            );
-          })}
+          {suggestions.slice(0, 10).map((suggestion, idx) => (
+            <li
+              key={suggestion.id || idx}
+              className="p-2 cursor-pointer hover:bg-gray-200 flex items-center"
+              style={{ pointerEvents: "auto" }}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => handleSuggestionClick(suggestion)}
+            >
+              <span className="mr-2">{suggestion.flag}</span>
+              <span>{suggestion.formatted}</span>
+            </li>
+          ))}
         </ul>
       )}
     </div>

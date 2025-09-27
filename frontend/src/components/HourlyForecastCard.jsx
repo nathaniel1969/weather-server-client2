@@ -96,7 +96,7 @@ function HourlyForecastCard({ hourlyData, isMetric }) {
       <div className="overflow-x-auto pb-4">
         <div className="flex space-x-4">
           {data.map((hour, index) => (
-            <div key={index} className="card flex-shrink-0 w-32 text-center">
+            <div key={index} className="card flex-shrink-0 w-40 text-center">
               <p className="font-bold">{hour.time}</p>
               <p className="text-2xl">
                 {Math.round(hour.temperature)}
@@ -133,6 +133,7 @@ function HourlyForecastCard({ hourlyData, isMetric }) {
                 metricUnit="%"
                 imperialUnit="%"
                 isMetric={isMetric}
+                style={{ whiteSpace: "nowrap" }}
               />
             </div>
           ))}

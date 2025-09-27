@@ -73,7 +73,7 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
   // Render weather card with background image and weather values
   return (
     <div
-      className="card"
+      className="card relative"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: "cover",
@@ -81,40 +81,78 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
       }}
     >
       {weatherData && (
-        <div>
+        <div className="relative z-10">
           <div className="text-center mb-4">
-            <h2 className="text-2xl font-bold mb-2">{locationName}</h2>
-            <p className="text-lg text-gray-600">{getFormattedDate}</p>
-            <p className="text-lg text-gray-600">{getFormattedTime}</p>
-            <div className="flex items-center justify-center mt-4 space-x-2">
-              <span className="text-5xl font-bold">
-                {Math.round(
-                  isMetric
-                    ? weatherData.current.temperature_2m
-                    : convertTemperature(weatherData.current.temperature_2m)
-                )}
-              </span>
-              <span className="text-3xl mt-2">{isMetric ? "°C" : "°F"}</span>
-              {/* Weather icon mapped from weather code and day/night */}
-              <i
-                className={`qi-${getIconCode(
-                  weatherData.current.weather_code,
-                  weatherData.current.is_day
-                )} qi text-5xl`}
-                aria-label="Weather icon"
-              ></i>
+            <div
+              className="inline-block px-4 py-2 rounded-lg shadow-lg"
+              style={{ backgroundColor: "rgba(255, 255, 255, 0.45)" }}
+            >
+              <h2
+                className="text-2xl font-bold mb-2 text-blue-900"
+                style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
+              >
+                {locationName}
+              </h2>
+              <p
+                className="text-lg text-blue-900"
+                style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
+              >
+                {getFormattedDate}
+              </p>
+              <p
+                className="text-lg text-blue-900"
+                style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
+              >
+                {getFormattedTime}
+              </p>
+              <div className="flex items-center justify-center mt-4 space-x-2">
+                <span
+                  className="text-5xl font-bold text-blue-900"
+                  style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
+                >
+                  {Math.round(
+                    isMetric
+                      ? weatherData.current.temperature_2m
+                      : convertTemperature(weatherData.current.temperature_2m)
+                  )}
+                </span>
+                <span
+                  className="text-3xl mt-2 text-blue-900"
+                  style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
+                >
+                  {isMetric ? "°C" : "°F"}
+                </span>
+                {/* Weather icon mapped from weather code and day/night */}
+                <i
+                  className={`qi-${getIconCode(
+                    weatherData.current.weather_code,
+                    weatherData.current.is_day
+                  )} qi text-5xl text-blue-900`}
+                  style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
+                  aria-label="Weather icon"
+                ></i>
+              </div>
+              <p
+                className="text-lg mt-2 text-blue-900"
+                style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
+              >
+                {getWeatherDescription(weatherData.current.weather_code)}
+              </p>
+              <p
+                className="text-lg mt-2 text-blue-900"
+                style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
+              >
+                <strong>Daylight:</strong>{" "}
+                {weatherData.current.is_day ? "Day" : "Night"}
+              </p>
             </div>
-            <p className="text-lg mt-2">
-              {getWeatherDescription(weatherData.current.weather_code)}
-            </p>
-            <p className="text-lg mt-2">
-              <strong>Daylight:</strong>{" "}
-              {weatherData.current.is_day ? "Day" : "Night"}
-            </p>
           </div>
-          {/* Weather values grid */}
+          {/* Weather values grid - balanced columns */}
           <div className="grid grid-cols-2 gap-4 mt-6">
-            <div className="bg-gray-100 p-4 rounded-lg">
+            <div
+              className="p-4 rounded-lg"
+              style={{ backgroundColor: "rgba(255,255,255,0.50)" }}
+            >
               <WeatherValue
                 label="Feels Like"
                 value={weatherData.current.apparent_temperature}
@@ -145,6 +183,11 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
                 imperialUnit="%"
                 isMetric={isMetric}
               />
+            </div>
+            <div
+              className="p-4 rounded-lg"
+              style={{ backgroundColor: "rgba(255, 255, 255, 0.50)" }}
+            >
               <WeatherValue
                 label="Surface Pressure"
                 value={weatherData.current.surface_pressure}
@@ -153,8 +196,6 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
                 convertFn={convertPressure}
                 isMetric={isMetric}
               />
-            </div>
-            <div className="bg-gray-100 p-4 rounded-lg">
               <WeatherValue
                 label="Wind Speed"
                 value={weatherData.current.wind_speed_10m}
