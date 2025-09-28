@@ -57,6 +57,7 @@ function App() {
       const response = await axios.get(
         `http://localhost:3001/api/weather?latitude=${suggestion.geometry.lat}&longitude=${suggestion.geometry.lng}&timezone=${suggestion.timezone}`
       );
+      console.log("Fetched weather data:", response.data);
       setWeatherData(response.data);
       setLocationName(suggestion.formatted);
     } catch (error) {

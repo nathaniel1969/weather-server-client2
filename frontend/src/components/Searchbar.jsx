@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import useDebounce from "../hooks/useDebounce";
 
@@ -16,11 +15,21 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
   // Suggestions for location autocomplete
   const [suggestions, setSuggestions] = useState([]);
   // Controls whether suggestions dropdown is shown
-  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   // Debounced search term for API requests
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const inputRef = useRef(null);
+  // Track last selected suggestion to suppress dropdown
+  const [lastSelected, setLastSelected] = useState("");
+  // Suppress suggestion fetch after selection
+  const [suppressSuggestions, setSuppressSuggestions] = useState(false);
 
   useEffect(() => {
+    if (suppressSuggestions) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
     // Fetch location suggestions from backend when debounced term changes
     const fetchSuggestions = async () => {
       if (debouncedSearchTerm.length > 2) {
@@ -28,28 +37,50 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
           const response = await axios.get(
             `http://localhost:3001/api/geocode?query=${debouncedSearchTerm}`
           );
-          setSuggestions(response.data.results || []);
+          setSuggestions(
+            response.data.results.map((item) => ({
+              ...item,
+              // Use a unique key based on lat/lng and formatted address
+              id: `${item.geometry.lat}-${item.geometry.lng}-${item.formatted}`,
+            })) || []
+          );
+          setShowSuggestions(true);
         } catch (error) {
           console.error("Error fetching suggestions:", error);
         }
       } else {
         setSuggestions([]);
+        setShowSuggestions(false);
       }
     };
-    if (showSuggestions) {
-      fetchSuggestions();
+    fetchSuggestions();
+  }, [debouncedSearchTerm, suppressSuggestions]);
+
+  // Hide dropdown only when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (inputRef.current && !inputRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
     }
-  }, [debouncedSearchTerm, showSuggestions]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   /**
    * Handles click on a location suggestion.
    * Sets search term and fetches weather for selected location.
    * @param {object} suggestion - The selected location suggestion.
    */
-  const handleSuggestionClick = (suggestion) => {
+  const handleSuggestionMouseDown = (suggestion, e) => {
+    e.preventDefault(); // Prevent input blur
     setSearchTerm(suggestion.formatted);
-    setShowSuggestions(false);
+    setLastSelected(suggestion.formatted);
+    setSuppressSuggestions(true);
     setSuggestions([]);
+    setShowSuggestions(false);
     fetchWeather(suggestion);
   };
 
@@ -63,7 +94,7 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
     if (searchTerm) {
       fetchWeather(searchTerm);
       setSuggestions([]);
-      setSearchTerm("");
+      setShowSuggestions(false);
     }
   };
 
@@ -73,14 +104,19 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
    * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
    */
   const handleInputChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    // Reset lastSelected and suppression when user types a new value
+    setLastSelected("");
+    setSuppressSuggestions(false);
     setShowSuggestions(true);
-    setSearchTerm(e.target.value);
   };
 
   return (
     <div className="relative">
-      <form onSubmit={handleSubmit} className="flex">
+      <form onSubmit={handleSubmit} className="flex" autoComplete="off">
         <input
+          ref={inputRef}
           type="text"
           value={searchTerm}
           onChange={handleInputChange}
@@ -97,13 +133,12 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
       {/* Location suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
         <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1">
-          {suggestions.slice(0, 10).map((suggestion, idx) => (
+          {suggestions.slice(0, 10).map((suggestion) => (
             <li
-              key={suggestion.id || idx}
+              key={suggestion.id}
               className="p-2 cursor-pointer hover:bg-gray-200 flex items-center"
               style={{ pointerEvents: "auto" }}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => handleSuggestionClick(suggestion)}
+              onMouseDown={(e) => handleSuggestionMouseDown(suggestion, e)}
             >
               <span className="mr-2">{suggestion.flag}</span>
               <span>{suggestion.formatted}</span>

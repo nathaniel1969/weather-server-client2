@@ -7,59 +7,84 @@ import {
   convertPrecipitation,
   convertPressure,
 } from "../utils/helpers";
+
 import WeatherValue from "./WeatherValue";
 
 /**
  * Displays the current weather information card.
- * Fetches a background image from Unsplash based on weather description.
+ * Fetches a background image from Unsplash based on location, daylight, and weather description.
  * @param {object} props - The props for the component.
- * @param {object} props.weatherData - The weather data from the API.
- * @param {string} props.locationName - The name of the location.
- * @param {boolean} props.isMetric - Boolean to determine if the units are metric.
- * @returns {JSX.Element} - The rendered component.
+ * @param {object} props.weatherData - Weather data from the API.
+ * @param {string} props.locationName - Name of the location.
+ * @param {boolean} props.isMetric - Use metric units if true.
+ * @returns {JSX.Element} Rendered weather card component.
  */
 function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
   const [backgroundImage, setBackgroundImage] = useState("");
 
-  // Fetch Unsplash image when weatherData changes
+  /**
+   * Fetch Unsplash image when weatherData or location changes.
+   * Query includes location, daylight, and weather description for relevance.
+   */
   useEffect(() => {
-    if (weatherData) {
-      const fetchImage = async () => {
-        const weatherDescription = getWeatherDescription(
-          weatherData.current.weather_code
+    if (!weatherData) return;
+    const fetchImage = async () => {
+      const weatherDescription = getWeatherDescription(
+        weatherData.current.weather_code
+      );
+      const daylight = weatherData.current.is_day ? "day" : "night";
+      const unsplashQuery = `${locationName}, ${daylight}, ${weatherDescription}`;
+      try {
+        const response = await fetch(
+          `http://localhost:3001/api/unsplash?query=${encodeURIComponent(
+            unsplashQuery
+          )}`
         );
-        try {
-          const response = await fetch(
-            `http://localhost:3001/api/unsplash?query=${weatherDescription}`
-          );
-          const data = await response.json();
-          if (data.urls && data.urls.regular) {
-            setBackgroundImage(data.urls.regular);
-          }
-        } catch (error) {
-          console.error("Failed to fetch image from Unsplash", error);
+        const data = await response.json();
+        if (data.urls && data.urls.regular) {
+          setBackgroundImage(data.urls.regular);
         }
-      };
-      fetchImage();
-    }
-  }, [weatherData]);
+      } catch (error) {
+        console.error("Failed to fetch image from Unsplash", error);
+      }
+    };
+    fetchImage();
+  }, [weatherData, locationName]);
 
-  // Memoize formatted date for performance
+  /**
+   * Returns formatted date string for display, using location's timezone.
+   */
   const getFormattedDate = useMemo(() => {
     if (!weatherData) return "";
     const date = new Date();
-    const day = date.getDate();
-    const month = date.toLocaleString("en-US", { month: "long" });
-    const year = date.getFullYear();
+    // Use weatherData.timezone for correct local date
+    const weekday = date.toLocaleString("en-US", {
+      weekday: "long",
+      timeZone: weatherData.timezone,
+    });
+    const month = date.toLocaleString("en-US", {
+      month: "long",
+      timeZone: weatherData.timezone,
+    });
+    const year = date.toLocaleString("en-US", {
+      year: "numeric",
+      timeZone: weatherData.timezone,
+    });
+    const day = date.toLocaleString("en-US", {
+      day: "numeric",
+      timeZone: weatherData.timezone,
+    });
     const getOrdinal = (n) => {
       const s = ["th", "st", "nd", "rd"],
         v = n % 100;
       return s[(v - 20) % 10] || s[v] || s[0];
     };
-    return `${month} ${day}${getOrdinal(day)}, ${year}`;
+    return `${weekday}, ${month} ${day}${getOrdinal(Number(day))}, ${year}`;
   }, [weatherData]);
 
-  // Memoize formatted time for performance
+  /**
+   * Returns formatted time string for display, using location's timezone.
+   */
   const getFormattedTime = useMemo(() => {
     if (!weatherData) return "";
     const date = new Date();
@@ -78,33 +103,39 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
+        zIndex: 0,
       }}
     >
       {weatherData && (
-        <div className="relative z-10">
-          <div className="text-center mb-4">
+        <div className="relative z-0">
+          {/* Location, date, time, and weather summary */}
+          <div className="text-center mb-4 z-0">
             <div
-              className="inline-block px-4 py-2 rounded-lg shadow-lg"
+              className="inline-block px-4 py-2 rounded-lg shadow-lg z-0"
               style={{ backgroundColor: "rgba(255, 255, 255, 0.45)" }}
             >
+              {/* Location name */}
               <h2
                 className="text-2xl font-bold mb-2 text-blue-900"
                 style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
               >
                 {locationName}
               </h2>
+              {/* Date */}
               <p
                 className="text-lg text-blue-900"
                 style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
               >
                 {getFormattedDate}
               </p>
+              {/* Time */}
               <p
                 className="text-lg text-blue-900"
                 style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
               >
                 {getFormattedTime}
               </p>
+              {/* Temperature, unit, and weather icon */}
               <div className="flex items-center justify-center mt-4 space-x-2">
                 <span
                   className="text-5xl font-bold text-blue-900"
@@ -132,12 +163,14 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
                   aria-label="Weather icon"
                 ></i>
               </div>
+              {/* Weather description */}
               <p
                 className="text-lg mt-2 text-blue-900"
                 style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
               >
                 {getWeatherDescription(weatherData.current.weather_code)}
               </p>
+              {/* Daylight period */}
               <p
                 className="text-lg mt-2 text-blue-900"
                 style={{ textShadow: "2px 2px 8px rgba(0,0,0,0.5)" }}
@@ -148,9 +181,10 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
             </div>
           </div>
           {/* Weather values grid - balanced columns */}
-          <div className="grid grid-cols-2 gap-4 mt-6">
+          <div className="grid grid-cols-2 gap-4 mt-6 z-0">
+            {/* Left column: Feels Like, Humidity, Precipitation, Cloud Cover */}
             <div
-              className="p-4 rounded-lg"
+              className="p-4 rounded-lg z-0"
               style={{ backgroundColor: "rgba(255,255,255,0.50)" }}
             >
               <WeatherValue
@@ -184,8 +218,9 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
                 isMetric={isMetric}
               />
             </div>
+            {/* Right column: Surface Pressure, Wind Speed, Wind Direction, Wind Gusts */}
             <div
-              className="p-4 rounded-lg"
+              className="p-4 rounded-lg z-0"
               style={{ backgroundColor: "rgba(255, 255, 255, 0.50)" }}
             >
               <WeatherValue
@@ -223,6 +258,11 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
           </div>
         </div>
       )}
+      {/* Overlay div for background image */}
+      <div
+        className="absolute inset-0 bg-black opacity-20"
+        style={{ zIndex: -1 }}
+      ></div>
     </div>
   );
 }

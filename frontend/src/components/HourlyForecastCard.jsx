@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { DateTime } from "luxon";
 import {
   LineChart,
   Line,
@@ -15,32 +15,54 @@ import {
   getWeatherDescription,
   getIconCode,
 } from "../utils/helpers";
+
 import WeatherValue from "./WeatherValue";
 
 /**
- * Displays the hourly weather forecast card.
+ * Displays the hourly weather forecast card with a chart and hourly details.
  * Memoizes data mapping for performance.
  * @param {object} props - The props for the component.
  * @param {object} props.hourlyData - The hourly weather data from the API.
  * @param {boolean} props.isMetric - Boolean to determine if the units are metric.
  * @returns {JSX.Element} - The rendered component.
  */
-function HourlyForecastCard({ hourlyData, isMetric }) {
+/**
+ * @param {object} props
+ * @param {object} props.hourlyData - The hourly weather data from the API.
+ * @param {boolean} props.isMetric - Boolean to determine if the units are metric.
+ * @param {string} props.timezone - The IANA timezone string for the location (e.g., "Australia/Sydney").
+ */
+function HourlyForecastCard({ hourlyData, isMetric, timezone }) {
+  // Debug: Print all available forecast hours from API
+  console.log("hourlyData.time:", hourlyData.time);
+  // Number of hours to display (user-selectable)
   const [numHours, setNumHours] = useState(12);
 
-  // Find the index of the next hour after the current hour
-  const now = new Date();
-  const currentHour = now.getHours();
+  // Use Luxon to get the current time in the location's timezone
+  const nowLuxon = DateTime.now().setZone(timezone);
+
+  // Find the index of the first forecast hour strictly after the local time
   let startIndex = 0;
   for (let i = 0; i < hourlyData.time.length; i++) {
-    const hour = new Date(hourlyData.time[i]).getHours();
-    if (hour > currentHour) {
+    const forecastLuxon = DateTime.fromISO(hourlyData.time[i], {
+      zone: timezone,
+    });
+    console.log(
+      `Comparing: forecastLuxon = ${forecastLuxon.toISO()} (${forecastLuxon.toMillis()}) to nowLuxon = ${nowLuxon.toISO()} (${nowLuxon.toMillis()})`
+    );
+    if (forecastLuxon.toMillis() > nowLuxon.toMillis()) {
+      console.log(
+        `Found startIndex: ${i} (forecastLuxon = ${forecastLuxon.toISO()}) > nowLuxon = ${nowLuxon.toISO()}`
+      );
       startIndex = i;
       break;
     }
   }
 
-  // Memoize mapped hourly data for performance
+  /**
+   * Memoize mapped hourly data for performance.
+   * Maps API data to chart and card display format.
+   */
   const data = useMemo(() => {
     return hourlyData.time
       .slice(startIndex, startIndex + numHours)
@@ -79,6 +101,7 @@ function HourlyForecastCard({ hourlyData, isMetric }) {
   // Render hourly forecast card and chart
   return (
     <div className="card">
+      {/* Header and hour selection */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Hourly Forecast</h2>
         <select
@@ -93,6 +116,7 @@ function HourlyForecastCard({ hourlyData, isMetric }) {
           ))}
         </select>
       </div>
+      {/* Hourly cards */}
       <div className="overflow-x-auto pb-4">
         <div className="flex space-x-4">
           {data.map((hour, index) => (

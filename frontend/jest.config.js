@@ -3,8 +3,7 @@ export default {
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setupTests.js'],
   testPathIgnorePatterns: ['/node_modules/', '<rootDir>/src/__tests__/setupTests.js'],
   transform: {
-    // eslint-disable-next-line no-useless-escape
-    '^.+\.jsx?: 'babel-jest'
+    '^.+\.jsx?$': 'babel-jest'
   },
   globals: {
     jest: true,
