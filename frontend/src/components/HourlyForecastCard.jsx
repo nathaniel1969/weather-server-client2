@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from "react";
-import { DateTime } from "luxon";
 import {
   LineChart,
   Line,
@@ -22,40 +21,49 @@ import WeatherValue from "./WeatherValue";
  * Displays the hourly weather forecast card with a chart and hourly details.
  * Memoizes data mapping for performance.
  * @param {object} props - The props for the component.
+ * @param {object} props.weatherData - Weather data from the API.
  * @param {object} props.hourlyData - The hourly weather data from the API.
  * @param {boolean} props.isMetric - Boolean to determine if the units are metric.
  * @returns {JSX.Element} - The rendered component.
  */
-/**
- * @param {object} props
- * @param {object} props.hourlyData - The hourly weather data from the API.
- * @param {boolean} props.isMetric - Boolean to determine if the units are metric.
- * @param {string} props.timezone - The IANA timezone string for the location (e.g., "Australia/Sydney").
- */
-function HourlyForecastCard({ hourlyData, isMetric, timezone }) {
+
+function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
   // Debug: Print all available forecast hours from API
-  console.log("hourlyData.time:", hourlyData.time);
+  // ...existing code...
   // Number of hours to display (user-selectable)
   const [numHours, setNumHours] = useState(12);
 
-  // Use Luxon to get the current time in the location's timezone
-  const nowLuxon = DateTime.now().setZone(timezone);
+  // Get the current time at the location using native JS
+  const now = new Date();
 
-  // Find the index of the first forecast hour strictly after the local time
+  const nowLocalStr = now.toLocaleString("en-US", {
+    timeZone: weatherData.timezone,
+  });
+  const nowLocal = new Date(nowLocalStr);
+
+  // Find the index where year, month, day, and hour exactly match the current local time
   let startIndex = 0;
-  for (let i = 0; i < hourlyData.time.length; i++) {
-    const forecastLuxon = DateTime.fromISO(hourlyData.time[i], {
-      zone: timezone,
-    });
-    console.log(
-      `Comparing: forecastLuxon = ${forecastLuxon.toISO()} (${forecastLuxon.toMillis()}) to nowLuxon = ${nowLuxon.toISO()} (${nowLuxon.toMillis()})`
-    );
-    if (forecastLuxon.toMillis() > nowLuxon.toMillis()) {
-      console.log(
-        `Found startIndex: ${i} (forecastLuxon = ${forecastLuxon.toISO()}) > nowLuxon = ${nowLuxon.toISO()}`
-      );
-      startIndex = i;
-      break;
+  if (hourlyData && hourlyData.time) {
+    const nowYear = nowLocal.getFullYear();
+    const nowMonth = nowLocal.getMonth(); // 0-indexed
+    const nowDay = nowLocal.getDate();
+    // Get hour in target timezone robustly (no rounding)
+    const nowHour = nowLocal.getHours();
+    for (let i = 0; i < hourlyData.time.length; i++) {
+      const forecastDate = new Date(hourlyData.time[i]);
+      const forecastYear = forecastDate.getFullYear();
+      const forecastMonth = forecastDate.getMonth();
+      const forecastDay = forecastDate.getDate();
+      const forecastHour = forecastDate.getHours();
+      if (
+        forecastYear === nowYear &&
+        forecastMonth === nowMonth &&
+        forecastDay === nowDay &&
+        forecastHour === nowHour
+      ) {
+        startIndex = i + 1; // Start from the next hour
+        break;
+      }
     }
   }
 
@@ -98,75 +106,112 @@ function HourlyForecastCard({ hourlyData, isMetric, timezone }) {
       });
   }, [hourlyData, isMetric, numHours, startIndex]);
 
-  // Render hourly forecast card and chart
+  // Render chart and hourly details
   return (
-    <div className="card">
-      {/* Header and hour selection */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Hourly Forecast</h2>
-        <select
-          value={numHours}
-          onChange={(e) => setNumHours(parseInt(e.target.value))}
-          className="p-2 rounded-md border border-gray-300"
-        >
-          {[12, 18, 24, 30, 36, 42, 48].map((hours) => (
-            <option key={hours} value={hours}>
-              {hours} Hours
-            </option>
-          ))}
-        </select>
+    <div className="hourly-forecast-card p-4 bg-white rounded shadow-md">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+        <h2 className="text-2xl font-bold mb-2 md:mb-0">Hourly Forecast</h2>
+        <div className="flex items-center gap-2">
+          <label htmlFor="numHours" className="font-medium">
+            Show:
+          </label>
+          <select
+            id="numHours"
+            value={numHours}
+            onChange={(e) => setNumHours(Number(e.target.value))}
+            className="border rounded px-2 py-1"
+          >
+            {[12, 18, 24, 30, 36, 42, 48].map((val) => (
+              <option key={val} value={val}>
+                {val} hours
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
-      {/* Hourly cards */}
-      <div className="overflow-x-auto pb-4">
-        <div className="flex space-x-4">
-          {data.map((hour, index) => (
-            <div key={index} className="card flex-shrink-0 w-40 text-center">
-              <p className="font-bold">{hour.time}</p>
-              <p className="text-2xl">
-                {Math.round(hour.temperature)}
-                {isMetric ? "°C" : "°F"}
-              </p>
-              {/* Weather icon mapped from weather code and day/night */}
-              <i
-                className={`qi-${getIconCode(
-                  hour.weatherCode,
-                  hour.is_day
-                )} text-3xl`}
-                aria-label="Weather icon"
-              ></i>
-              <p className="text-sm text-gray-600">
-                {getWeatherDescription(hour.weatherCode)}
-              </p>
+      <div className="overflow-x-auto pb-2">
+        <div
+          className="flex gap-4 min-w-[700px]"
+          style={{ width: "max-content" }}
+        >
+          {data.map((item, idx) => (
+            <div
+              key={idx}
+              className="w-56 min-w-[220px] max-w-xs flex-shrink-0 p-3 border rounded bg-gray-50 flex flex-col items-center"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                {/* Weather Icon */}
+                <span
+                  className={`qwi qwi-${getIconCode(item.weatherCode)}`}
+                  style={{ fontSize: 28 }}
+                ></span>
+                <span className="text-xl font-bold">{item.time}</span>
+              </div>
+              <div className="text-sm text-gray-600 mb-2 text-center">
+                {getWeatherDescription(item.weatherCode)}
+              </div>
               <WeatherValue
-                label="Precip"
-                value={hour.precipitation}
+                label="Humidity"
+                value={item.relative_humidity_2m}
                 metricUnit="%"
                 imperialUnit="%"
                 isMetric={isMetric}
               />
               <WeatherValue
-                label="UV"
-                value={hour.uv_index}
+                label="Cloud Cover"
+                value={item.cloud_cover}
+                metricUnit="%"
+                imperialUnit="%"
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="Visibility"
+                value={item.visibility}
+                metricUnit="m"
+                imperialUnit="m"
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="Wind Speed"
+                value={item.wind_speed_10m}
+                metricUnit="km/h"
+                imperialUnit="mph"
+                convertFn={(v) => v * 0.621371}
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="Wind Direction"
+                value={item.wind_direction_10m}
+                metricUnit="°"
+                imperialUnit="°"
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="Wind Gusts"
+                value={item.wind_gusts_10m}
+                metricUnit="km/h"
+                imperialUnit="mph"
+                convertFn={(v) => v * 0.621371}
+                isMetric={isMetric}
+              />
+              <WeatherValue
+                label="UV Index"
+                value={item.uv_index}
                 metricUnit=""
                 imperialUnit=""
                 isMetric={isMetric}
-              />
-              <WeatherValue
-                label="Clouds"
-                value={hour.cloud_cover}
-                metricUnit="%"
-                imperialUnit="%"
-                isMetric={isMetric}
-                style={{ whiteSpace: "nowrap" }}
               />
             </div>
           ))}
         </div>
       </div>
-      {/* Hourly temperature chart */}
-      <div className="mt-6" style={{ width: "100%", height: 300 }}>
-        <ResponsiveContainer>
-          <LineChart data={data}>
+      <div className="mb-8">
+        <h3 className="text-md font-semibold mb-2">Temperature Graph</h3>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart
+            data={data}
+            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
             <YAxis />
@@ -176,7 +221,49 @@ function HourlyForecastCard({ hourlyData, isMetric, timezone }) {
               type="monotone"
               dataKey="temperature"
               stroke="#8884d8"
-              activeDot={{ r: 8 }}
+              name={`Temp (${isMetric ? "°C" : "°F"})`}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mb-8">
+        <h3 className="text-md font-semibold mb-2">Pressure Graph</h3>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart
+            data={data}
+            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="pressure_msl"
+              stroke="#ff7300"
+              name="Pressure (hPa)"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div>
+        <h3 className="text-md font-semibold mb-2">Precipitation Graph</h3>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart
+            data={data}
+            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="precipitation"
+              stroke="#1e90ff"
+              name="Precipitation (%)"
             />
           </LineChart>
         </ResponsiveContainer>
@@ -184,5 +271,4 @@ function HourlyForecastCard({ hourlyData, isMetric, timezone }) {
     </div>
   );
 }
-
 export default HourlyForecastCard;

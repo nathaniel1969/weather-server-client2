@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "helmet": "^8.1.0",
-    "qweather-icons": "^1.8.0"
-  }
-}

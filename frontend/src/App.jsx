@@ -57,7 +57,7 @@ function App() {
       const response = await axios.get(
         `http://localhost:3001/api/weather?latitude=${suggestion.geometry.lat}&longitude=${suggestion.geometry.lng}&timezone=${suggestion.timezone}`
       );
-      console.log("Fetched weather data:", response.data);
+      // ...existing code...
       setWeatherData(response.data);
       setLocationName(suggestion.formatted);
     } catch (error) {
@@ -100,6 +100,7 @@ function App() {
                 isMetric={isMetric}
               />
               <HourlyForecastCard
+                weatherData={weatherData}
                 hourlyData={weatherData.hourly}
                 isMetric={isMetric}
               />
