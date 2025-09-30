@@ -1,16 +1,25 @@
+/**
+ * App.jsx
+ * Main entry point for the weather application. Handles state, API calls, and renders weather cards and controls.
+ */
 import { useState, useCallback } from "react";
 import axios from "axios";
-import CurrentWeatherCard from "./components/CurrentWeatherCard";
-import HourlyForecastCard from "./components/HourlyForecastCard";
-import DailyForecastCard from "./components/DailyForecastCard";
+import { Suspense, lazy } from "react";
+const CurrentWeatherCard = lazy(() =>
+  import("./components/CurrentWeatherCard")
+);
+const HourlyForecastCard = lazy(() =>
+  import("./components/HourlyForecastCard")
+);
+const DailyForecastCard = lazy(() => import("./components/DailyForecastCard"));
 import Header from "./components/Header";
 
 /**
- * The main component of the weather application.
- * Handles state, API calls, and renders weather cards.
- * @returns {JSX.Element} - The rendered component.
+ * App component
+ * @returns {JSX.Element} Main weather app UI
  */
 function App() {
+  // State for weather data, location, units, search, loading, and error
   const [weatherData, setWeatherData] = useState(null);
   const [locationName, setLocationName] = useState("");
   const [isMetric, setIsMetric] = useState(false);
@@ -57,7 +66,6 @@ function App() {
       const response = await axios.get(
         `http://localhost:3001/api/weather?latitude=${suggestion.geometry.lat}&longitude=${suggestion.geometry.lng}&timezone=${suggestion.timezone}`
       );
-      // ...existing code...
       setWeatherData(response.data);
       setLocationName(suggestion.formatted);
     } catch (error) {
@@ -71,6 +79,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
       <main className="w-full max-w-4xl">
+        {/* App title and subtitle */}
         <h1 className="text-4xl font-bold text-center text-gray-800 mb-2">
           Open-Weather App
         </h1>
@@ -87,13 +96,16 @@ function App() {
           setSearchTerm={setSearchTerm}
         />
 
+        {/* Loading and error messages */}
         {loading && <p className="text-center mt-8">Loading...</p>}
         {error && <p className="text-center text-red-500 mt-8">{error}</p>}
 
         {/* Weather cards: only show if data is loaded and no error */}
         <div className="grid grid-cols-1 gap-8 mt-8">
           {!loading && !error && weatherData && (
-            <>
+            <Suspense
+              fallback={<div className="text-center">Loading cards...</div>}
+            >
               <CurrentWeatherCard
                 weatherData={weatherData}
                 locationName={locationName}
@@ -108,7 +120,7 @@ function App() {
                 dailyData={weatherData.daily}
                 isMetric={isMetric}
               />
-            </>
+            </Suspense>
           )}
         </div>
       </main>

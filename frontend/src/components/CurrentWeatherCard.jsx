@@ -1,3 +1,9 @@
+/**
+ * CurrentWeatherCard.jsx
+ * Displays the current weather information for a location, including background image, temperature, weather icon, and metrics.
+ * Fetches a relevant Unsplash image based on location, daylight, and weather description.
+ * Uses WeatherValue for metric/imperial display of weather metrics.
+ */
 import React, { useState, useEffect, useMemo } from "react";
 import {
   convertTemperature,
@@ -7,17 +13,15 @@ import {
   convertPrecipitation,
   convertPressure,
 } from "../utils/helpers";
-
 import WeatherValue from "./WeatherValue";
 
 /**
- * Displays the current weather information card.
- * Fetches a background image from Unsplash based on location, daylight, and weather description.
- * @param {object} props - The props for the component.
- * @param {object} props.weatherData - Weather data from the API.
- * @param {string} props.locationName - Name of the location.
- * @param {boolean} props.isMetric - Use metric units if true.
- * @returns {JSX.Element} Rendered weather card component.
+ * CurrentWeatherCard component
+ * @param {Object} props
+ * @param {Object} props.weatherData - Weather data from the API (required)
+ * @param {string} props.locationName - Name of the location (required)
+ * @param {boolean} props.isMetric - If true, display metric units; otherwise, imperial
+ * @returns {JSX.Element} Weather card UI
  */
 function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
   const [backgroundImage, setBackgroundImage] = useState("");
@@ -74,6 +78,7 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
       day: "numeric",
       timeZone: weatherData.timezone,
     });
+    // Helper to get ordinal suffix for day
     const getOrdinal = (n) => {
       const s = ["th", "st", "nd", "rd"],
         v = n % 100;

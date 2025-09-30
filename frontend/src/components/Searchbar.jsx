@@ -1,15 +1,19 @@
+/**
+ * Searchbar.jsx
+ * Location search input with autocomplete suggestions for weather app.
+ * Uses debounced input to fetch location suggestions from backend geocode API.
+ */
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import useDebounce from "../hooks/useDebounce";
 
 /**
- * Searchbar component for location input and suggestions.
- * Uses debounced input to fetch location suggestions from backend geocode API.
- * @param {object} props - The props for the component.
- * @param {function} props.fetchWeather - Function to fetch weather data for a location.
- * @param {string} props.searchTerm - The current search term.
- * @param {function} props.setSearchTerm - Function to set the search term.
- * @returns {JSX.Element} - The rendered component.
+ * Searchbar component
+ * @param {Object} props
+ * @param {function} props.fetchWeather - Function to fetch weather data for a location
+ * @param {string} props.searchTerm - The current search term
+ * @param {function} props.setSearchTerm - Function to set the search term
+ * @returns {JSX.Element} Searchbar UI
  */
 function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
   // Suggestions for location autocomplete
@@ -19,18 +23,16 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
   // Debounced search term for API requests
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const inputRef = useRef(null);
-  // Track last selected suggestion to suppress dropdown
-  const [lastSelected, setLastSelected] = useState("");
   // Suppress suggestion fetch after selection
   const [suppressSuggestions, setSuppressSuggestions] = useState(false);
 
+  // Fetch location suggestions from backend when debounced term changes
   useEffect(() => {
     if (suppressSuggestions) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
     }
-    // Fetch location suggestions from backend when debounced term changes
     const fetchSuggestions = async () => {
       if (debouncedSearchTerm.length > 2) {
         try {
@@ -73,11 +75,11 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
    * Handles click on a location suggestion.
    * Sets search term and fetches weather for selected location.
    * @param {object} suggestion - The selected location suggestion.
+   * @param {React.MouseEvent} e - The mouse event.
    */
   const handleSuggestionMouseDown = (suggestion, e) => {
     e.preventDefault(); // Prevent input blur
     setSearchTerm(suggestion.formatted);
-    setLastSelected(suggestion.formatted);
     setSuppressSuggestions(true);
     setSuggestions([]);
     setShowSuggestions(false);
@@ -107,13 +109,13 @@ function Searchbar({ fetchWeather, searchTerm, setSearchTerm }) {
     const value = e.target.value;
     setSearchTerm(value);
     // Reset lastSelected and suppression when user types a new value
-    setLastSelected("");
     setSuppressSuggestions(false);
     setShowSuggestions(true);
   };
 
   return (
     <div className="relative">
+      {/* Search form */}
       <form onSubmit={handleSubmit} className="flex" autoComplete="off">
         <input
           ref={inputRef}

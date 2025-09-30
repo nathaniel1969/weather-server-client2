@@ -1,56 +1,61 @@
 /**
- * @file Contains helper functions for the weather application.
- * @module utils/helpers
+ * Converts visibility from metres to kilometers.
+ * @param {number} metres - Visibility in metres.
+ * @returns {number} Visibility in kilometers.
  */
+export const convertVisibilityToKm = (metres) => metres / 1000;
 
 /**
- * Conversion factors for metric to imperial units.
+ * Converts visibility from metres to miles.
+ * @param {number} metres - Visibility in metres.
+ * @returns {number} Visibility in miles.
  */
-const KMH_TO_MPH = 1.60934;
-const MM_TO_IN = 25.4;
-const HPA_TO_INHG = 0.02953;
+export const convertVisibilityToMiles = (metres) => metres / 1609.344;
+/**
+ * @file Contains helper functions for the weather application.
+ * @module utils/helpers
+ *
+ * Conversion, mapping, and formatting utilities for weather data.
+ */
+
+// Conversion factors for metric to imperial units
+const KMH_TO_MPH = 1.60934; // km/h to mph
+const MM_TO_IN = 25.4; // mm to inches
+const HPA_TO_INHG = 0.02953; // hPa to inHg
 
 /**
  * Converts temperature from Celsius to Fahrenheit.
- * @param {number} temp - The temperature in Celsius.
- * @returns {number} - The converted temperature in Fahrenheit.
+ * @param {number} temp - Temperature in Celsius.
+ * @returns {number} Temperature in Fahrenheit.
  */
-export const convertTemperature = (temp) => {
-  return (temp * 9) / 5 + 32;
-};
+export const convertTemperature = (temp) => (temp * 9) / 5 + 32;
 
 /**
  * Converts speed from km/h to mph.
- * @param {number} speed - The speed in km/h.
- * @returns {number} - The converted speed in mph.
+ * @param {number} speed - Speed in km/h.
+ * @returns {number} Speed in mph.
  */
-export const convertSpeed = (speed) => {
-  return speed / KMH_TO_MPH;
-};
+export const convertSpeed = (speed) => speed / KMH_TO_MPH;
 
 /**
  * Converts precipitation from mm to inches.
- * @param {number} precipitation - The precipitation in mm.
- * @returns {number} - The converted precipitation in inches.
+ * @param {number} precipitation - Precipitation in mm.
+ * @returns {number} Precipitation in inches.
  */
-export const convertPrecipitation = (precipitation) => {
-  return precipitation / MM_TO_IN;
-};
+export const convertPrecipitation = (precipitation) => precipitation / MM_TO_IN;
 
 /**
  * Converts pressure from hPa to inHg.
- * @param {number} pressure - The pressure in hPa.
- * @returns {number} - The converted pressure in inHg.
+ * @param {number} pressure - Pressure in hPa.
+ * @returns {number} Pressure in inHg.
  */
-export const convertPressure = (pressure) => {
-  return pressure * HPA_TO_INHG;
-};
+export const convertPressure = (pressure) => pressure * HPA_TO_INHG;
 
 /**
- * Returns a description for a given weather code.
+ * Returns a description for a given weather code (WMO).
  * Memoized for performance.
- * @param {number} code - The weather code from the API.
- * @returns {string} - The weather description.
+ * @param {number} code - Weather code from the API.
+ * @returns {string} Weather description.
  */
 const weatherDescriptionCache = {};
 const descriptions = {
@@ -93,9 +98,9 @@ export const getWeatherDescription = (code) => {
 /**
  * Maps WMO weather codes to QWeather icon codes.
  * Memoized for performance.
- * @param {number} code - The WMO weather code from the API.
+ * @param {number} code - WMO weather code from the API.
  * @param {number} isDay - 1 for day, 0 for night.
- * @returns {number} - The corresponding QWeather icon code.
+ * @returns {number} QWeather icon code.
  */
 const iconCodeCache = {};
 const wmoToQWeather = {
@@ -131,7 +136,7 @@ const wmoToQWeather = {
 export const getIconCode = (code, isDay = 1) => {
   const cacheKey = `${code}_${isDay}`;
   if (iconCodeCache[cacheKey]) return iconCodeCache[cacheKey];
-  let result = 999;
+  let result = 999; // Default icon if not found
   if (wmoToQWeather[code]) {
     result = isDay ? wmoToQWeather[code].day : wmoToQWeather[code].night;
   }
@@ -141,24 +146,16 @@ export const getIconCode = (code, isDay = 1) => {
 
 /**
  * Formats a duration in seconds to a string like "Xh Ym Zs".
- * @param {number} durationInSeconds - The duration in seconds.
- * @returns {string} - The formatted duration string.
+ * @param {number} durationInSeconds - Duration in seconds.
+ * @returns {string} Formatted duration string.
  */
 export const formatDuration = (durationInSeconds) => {
   const hours = Math.floor(durationInSeconds / 3600);
   const minutes = Math.floor((durationInSeconds % 3600) / 60);
   const seconds = Math.floor(durationInSeconds % 60);
-
   let formattedDuration = "";
-  if (hours > 0) {
-    formattedDuration += `${hours}h `;
-  }
-  if (minutes > 0) {
-    formattedDuration += `${minutes}m `;
-  }
-  if (seconds > 0) {
-    formattedDuration += `${seconds}s`;
-  }
-
+  if (hours > 0) formattedDuration += `${hours}h `;
+  if (minutes > 0) formattedDuration += `${minutes}m `;
+  if (seconds > 0) formattedDuration += `${seconds}s`;
   return formattedDuration.trim();
 };

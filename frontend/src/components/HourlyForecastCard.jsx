@@ -1,3 +1,8 @@
+/**
+ * HourlyForecastCard.jsx
+ * Displays the hourly weather forecast with a chart and hourly details for a location.
+ * Shows temperature, weather icon, and metrics using WeatherValue, and renders multiple charts.
+ */
 import React, { useState, useMemo } from "react";
 import {
   LineChart,
@@ -13,29 +18,26 @@ import {
   convertTemperature,
   getWeatherDescription,
   getIconCode,
+  convertSpeed,
+  convertVisibilityToKm,
+  convertVisibilityToMiles,
 } from "../utils/helpers";
-
 import WeatherValue from "./WeatherValue";
 
 /**
- * Displays the hourly weather forecast card with a chart and hourly details.
- * Memoizes data mapping for performance.
- * @param {object} props - The props for the component.
- * @param {object} props.weatherData - Weather data from the API.
- * @param {object} props.hourlyData - The hourly weather data from the API.
- * @param {boolean} props.isMetric - Boolean to determine if the units are metric.
- * @returns {JSX.Element} - The rendered component.
+ * HourlyForecastCard component
+ * @param {Object} props
+ * @param {Object} props.weatherData - Weather data from the API (required)
+ * @param {Object} props.hourlyData - Hourly weather data from the API (required)
+ * @param {boolean} props.isMetric - If true, display metric units; otherwise, imperial
+ * @returns {JSX.Element} Hourly forecast card UI
  */
-
 function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
-  // Debug: Print all available forecast hours from API
-  // ...existing code...
   // Number of hours to display (user-selectable)
   const [numHours, setNumHours] = useState(12);
 
   // Get the current time at the location using native JS
   const now = new Date();
-
   const nowLocalStr = now.toLocaleString("en-US", {
     timeZone: weatherData.timezone,
   });
@@ -47,7 +49,6 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
     const nowYear = nowLocal.getFullYear();
     const nowMonth = nowLocal.getMonth(); // 0-indexed
     const nowDay = nowLocal.getDate();
-    // Get hour in target timezone robustly (no rounding)
     const nowHour = nowLocal.getHours();
     for (let i = 0; i < hourlyData.time.length; i++) {
       const forecastDate = new Date(hourlyData.time[i]);
@@ -67,10 +68,7 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
     }
   }
 
-  /**
-   * Memoize mapped hourly data for performance.
-   * Maps API data to chart and card display format.
-   */
+  // Memoize mapped hourly data for performance
   const data = useMemo(() => {
     return hourlyData.time
       .slice(startIndex, startIndex + numHours)
@@ -111,6 +109,7 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
     <div className="hourly-forecast-card p-4 bg-white rounded shadow-md">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
         <h2 className="text-2xl font-bold mb-2 md:mb-0">Hourly Forecast</h2>
+        {/* Dropdown to select number of hours to display */}
         <div className="flex items-center gap-2">
           <label htmlFor="numHours" className="font-medium">
             Show:
@@ -129,6 +128,7 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
           </select>
         </div>
       </div>
+      {/* Scrollable hourly forecast cards */}
       <div className="overflow-x-auto pb-2">
         <div
           className="flex gap-4 min-w-[700px]"
@@ -140,16 +140,20 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
               className="w-56 min-w-[220px] max-w-xs flex-shrink-0 p-3 border rounded bg-gray-50 flex flex-col items-center"
             >
               <div className="flex items-center gap-2 mb-1">
-                {/* Weather Icon */}
+                {/* Weather Icon and time */}
                 <span
-                  className={`qwi qwi-${getIconCode(item.weatherCode)}`}
-                  style={{ fontSize: 28 }}
+                  className={`qi-${getIconCode(
+                    item.weatherCode,
+                    item.is_day
+                  )} text-3xl`}
+                  aria-label="Weather icon"
                 ></span>
                 <span className="text-xl font-bold">{item.time}</span>
               </div>
               <div className="text-sm text-gray-600 mb-2 text-center">
                 {getWeatherDescription(item.weatherCode)}
               </div>
+              {/* Weather metrics using WeatherValue */}
               <WeatherValue
                 label="Humidity"
                 value={item.relative_humidity_2m}
@@ -167,8 +171,11 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
               <WeatherValue
                 label="Visibility"
                 value={item.visibility}
-                metricUnit="m"
-                imperialUnit="m"
+                metricUnit="km"
+                imperialUnit="mi"
+                convertFn={
+                  isMetric ? convertVisibilityToKm : convertVisibilityToMiles
+                }
                 isMetric={isMetric}
               />
               <WeatherValue
@@ -176,7 +183,7 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
                 value={item.wind_speed_10m}
                 metricUnit="km/h"
                 imperialUnit="mph"
-                convertFn={(v) => v * 0.621371}
+                convertFn={convertSpeed}
                 isMetric={isMetric}
               />
               <WeatherValue
@@ -191,7 +198,7 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
                 value={item.wind_gusts_10m}
                 metricUnit="km/h"
                 imperialUnit="mph"
-                convertFn={(v) => v * 0.621371}
+                convertFn={convertSpeed}
                 isMetric={isMetric}
               />
               <WeatherValue
@@ -205,6 +212,7 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
           ))}
         </div>
       </div>
+      {/* Temperature chart */}
       <div className="mb-8">
         <h3 className="text-md font-semibold mb-2">Temperature Graph</h3>
         <ResponsiveContainer width="100%" height={200}>
@@ -226,6 +234,7 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
           </LineChart>
         </ResponsiveContainer>
       </div>
+      {/* Pressure chart */}
       <div className="mb-8">
         <h3 className="text-md font-semibold mb-2">Pressure Graph</h3>
         <ResponsiveContainer width="100%" height={200}>
@@ -247,6 +256,7 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
           </LineChart>
         </ResponsiveContainer>
       </div>
+      {/* Precipitation chart */}
       <div>
         <h3 className="text-md font-semibold mb-2">Precipitation Graph</h3>
         <ResponsiveContainer width="100%" height={200}>
@@ -271,4 +281,5 @@ function HourlyForecastCard({ weatherData, hourlyData, isMetric }) {
     </div>
   );
 }
+
 export default HourlyForecastCard;

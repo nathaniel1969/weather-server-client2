@@ -1,3 +1,8 @@
+/**
+ * DailyForecastCard.jsx
+ * Displays the daily weather forecast for upcoming days, including temperature, weather icon, sunrise/sunset, and metrics.
+ * Shows a temperature chart using Recharts and uses WeatherValue for metric/imperial display.
+ */
 import React, { useMemo } from "react";
 import {
   LineChart,
@@ -18,12 +23,11 @@ import {
 import WeatherValue from "./WeatherValue";
 
 /**
- * Displays the daily weather forecast card.
- * Memoizes data mapping for performance.
- * @param {object} props - The props for the component.
- * @param {object} props.dailyData - The daily weather data from the API.
- * @param {boolean} props.isMetric - Boolean to determine if the units are metric.
- * @returns {JSX.Element} - The rendered component.
+ * DailyForecastCard component
+ * @param {Object} props
+ * @param {Object} props.dailyData - Daily weather data from the API (required)
+ * @param {boolean} props.isMetric - If true, display metric units; otherwise, imperial
+ * @returns {JSX.Element} Daily forecast card UI
  */
 function DailyForecastCard({ dailyData, isMetric }) {
   // Start from the day after the current day
@@ -75,6 +79,7 @@ function DailyForecastCard({ dailyData, isMetric }) {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Daily Forecast</h2>
       </div>
+      {/* Scrollable daily forecast cards */}
       <div className="overflow-x-auto pb-4">
         <div className="flex space-x-4 flex-nowrap">
           {data.map((day, index) => (

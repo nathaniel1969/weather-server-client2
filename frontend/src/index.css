@@ -1,2 +1,8 @@
+/*
+ * index.css
+ * Main stylesheet entry point for the frontend application.
+ * Imports Tailwind CSS and custom styles for global usage.
+ * Add additional global styles or imports here as needed.
+ */
 @import "tailwindcss";
 @import "./styles/custom.css";
