@@ -40,9 +40,7 @@ function CurrentWeatherCard({ weatherData, locationName, isMetric }) {
       const unsplashQuery = `${locationName}, ${daylight}, ${weatherDescription}`;
       try {
         const response = await fetch(
-          `http://localhost:3001/api/unsplash?query=${encodeURIComponent(
-            unsplashQuery
-          )}`
+          `/api/unsplash?query=${encodeURIComponent(unsplashQuery)}`
         );
         const data = await response.json();
         if (data.urls && data.urls.regular) {

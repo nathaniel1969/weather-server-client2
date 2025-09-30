@@ -49,7 +49,7 @@ function App() {
       // If location is a string, fetch geocode suggestion
       if (typeof location === "string") {
         const geoResponse = await axios.get(
-          `http://localhost:3001/api/geocode?query=${location}`
+          `/api/geocode?query=${location}`
         );
         if (geoResponse.data.results && geoResponse.data.results.length > 0) {
           suggestion = geoResponse.data.results[0];
@@ -64,7 +64,7 @@ function App() {
       }
       // Fetch weather data for the selected suggestion
       const response = await axios.get(
-        `http://localhost:3001/api/weather?latitude=${suggestion.geometry.lat}&longitude=${suggestion.geometry.lng}&timezone=${suggestion.timezone}`
+        `/api/weather?latitude=${suggestion.geometry.lat}&longitude=${suggestion.geometry.lng}&timezone=${suggestion.timezone}`
       );
       setWeatherData(response.data);
       setLocationName(suggestion.formatted);

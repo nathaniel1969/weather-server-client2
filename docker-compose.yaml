@@ -1,0 +1,24 @@
+# Docker Compose file for running the full-stack weather application.
+# This file defines two services: `backend` and `frontend`.
+# To run the application, use the command: `docker-compose up --build`
+
+services:
+  # The backend service, built from the Dockerfile in the ./backend directory.
+  backend:
+    build: ./backend
+    # Maps port 3001 of the container to port 3001 on the host machine.
+    ports:
+      - "3001:3001"
+    # Specifies the .env file to use for environment variables.
+    env_file:
+      - ./backend/.env
+
+  # The frontend service, built from the Dockerfile in the ./frontend directory.
+  frontend:
+    build: ./frontend
+    # Maps port 80 of the container to port 8080 on the host machine.
+    ports:
+      - "8080:80"
+    # Ensures that the backend service is started before the frontend service.
+    depends_on:
+      - backend
