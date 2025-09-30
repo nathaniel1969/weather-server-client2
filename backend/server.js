@@ -88,7 +88,10 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use(limiter);
+// Apply the rate limiting middleware in production only
+if (config.isProduction) {
+  app.use(limiter);
+}
 
 /**
  * In-memory cache for API responses.
